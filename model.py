@@ -496,10 +496,10 @@ class MLTModel(object):
 
     def initialize_session(self):
         tf.set_random_seed(self.config["random_seed"])
-        session_config = tf.ConfigProto()
+        session_config = tf.ConfigProto(log_device_placement=True)
         session_config.gpu_options.allow_growth = self.config["tf_allow_growth"]
         session_config.gpu_options.per_process_gpu_memory_fraction = self.config["tf_per_process_gpu_memory_fraction"]
-        self.session = tf.Session(config=session_config(log_device_placement=True))
+        self.session = tf.Session(config=session_config)
         self.session.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver(max_to_keep=1)
 
