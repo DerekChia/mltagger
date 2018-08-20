@@ -5,6 +5,7 @@ import random
 import math
 import os
 import gc
+from tensorflow import tf
 
 try:
     import ConfigParser as configparser
