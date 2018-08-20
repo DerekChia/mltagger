@@ -5,9 +5,7 @@ import random
 import math
 import os
 import gc
-
-from keras import backend as K
-from keras.utils.training_utils import multi_gpu_model  # multi_gpu_model
+import tensorflow as tf
 
 try:
     import ConfigParser as configparser
@@ -172,15 +170,9 @@ def run_experiment(config_path):
         data_test = []
         for path_test in config["path_test"].strip().split(":"):
             data_test += read_input_files(path_test)
-
-    if (G == 1):
-        model = MLTModel(config)
-    else:
-        with K.tf.device("/cpu:0"):
-            model = MLTModel(config)
-    if (G > 1):
-        model = multi_gpu_model(model, gpus=8)
     
+    model = MLTModel(config)
+
     model.build_vocabs(data_train, data_dev, data_test, config["preload_vectors"])
     model.construct_network()
     model.initialize_session()
@@ -244,5 +236,5 @@ def run_experiment(config_path):
             i += 1
 
 if __name__ == "__main__":
-    run_experiment(sys.argv[1])
+    run_experiment('conf/config_test_dev.conf')
 
