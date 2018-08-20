@@ -193,7 +193,7 @@ def run_experiment(config_path):
             results_train = process_sentences(epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
 
             if data_dev != None:
-                results_dev = process_sentences(data_dev, model, is_training=False, learningrate=0.0, config=config, name="dev")
+                results_dev = process_sentences(epoch, data_dev, model, is_training=False, learningrate=0.0, config=config, name="dev")
 
                 if math.isnan(results_dev["dev_cost_sum"]) or math.isinf(results_dev["dev_cost_sum"]):
                     raise ValueError("Cost is NaN or Inf. Exiting.")
@@ -229,7 +229,7 @@ def run_experiment(config_path):
         i = 0
         for path_test in config["path_test"].strip().split(":"):
             data_test = read_input_files(path_test)
-            results_test = process_sentences(data_test, model, is_training=False, learningrate=0.0, config=config, name="test"+str(i))
+            results_test = process_sentences(epoch, data_test, model, is_training=False, learningrate=0.0, config=config, name="test"+str(i))
             i += 1
 
 if __name__ == "__main__":
