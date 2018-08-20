@@ -109,23 +109,49 @@ class MLTModel(object):
 
         self.word_embeddings = tf.get_variable("word_embeddings", 
             shape=[len(self.word2id), self.config["word_embedding_size"]], 
-            initializer=(zeros_initializer if self.config["emb_initial_zero"] == True else self.initializer), 
+            initializer=(zeros_initializer if self.config["emb_initial_zero"] == True else self.initializer),
             trainable=(True if self.config["train_embeddings"] == True else False))
+
+        # word_embeddings [13470 300][[0.0164626278 -0.0187288448 -0.0165187102 -0.00846466795 -0.000238586217]...]
+        # self.word_embeddings = tf.Print(self.word_embeddings, [tf.shape(self.word_embeddings), self.word_embeddings], 'word_embeddings ', summarize=5)
+
         input_tensor = tf.nn.embedding_lookup(self.word_embeddings, self.word_ids)
+
+        # input_tensor [32 42 300][[[0.033284 -0.040754 -0.048377 0.12017 -0.13915]]...]
+        input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
+
+        # word_embedding_size = 300        
         input_vector_size = self.config["word_embedding_size"]
 
+        # char_embedding_size = 100, char_recurrent_size = 100
         if self.config["char_embedding_size"] > 0 and self.config["char_recurrent_size"] > 0:
             with tf.variable_scope("chars"), tf.control_dependencies([tf.assert_equal(tf.shape(self.char_ids)[2], tf.reduce_max(self.word_lengths), message="Char dimensions don't match")]):
                 self.char_embeddings = tf.get_variable("char_embeddings", 
                     shape=[len(self.char2id), self.config["char_embedding_size"]], 
                     initializer=self.initializer, 
                     trainable=True)
-                char_input_tensor = tf.nn.embedding_lookup(self.char_embeddings, self.char_ids)
 
+                # self.char_embeddings [97 100][[-0.0284440666 -0.0544790775 -0.0190391093 0.170494288 0.133321077]...]
+                # self.char_embeddings = tf.Print(self.char_embeddings, [tf.shape(self.char_embeddings), self.char_embeddings], 'self.char_embeddings ', summarize=5)
+
+                # char_input_tensor returns tensor containing embeddings of respective char_ids
+                char_input_tensor = tf.nn.embedding_lookup(self.char_embeddings, self.char_ids)
                 s = tf.shape(char_input_tensor)
+
+                # char_input_tensor [32 42 14 100][[[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]]...]
+                char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
+
+                # Reshaping char_input_tensor and word_lengths - Why?
+                # self.char_embeddings (97, 100), word_lengths (32, 42)
+                # char_input_tensor.shape (1344, 14, 100)
                 char_input_tensor = tf.reshape(char_input_tensor, shape=[s[0]*s[1], s[2], self.config["char_embedding_size"]])
+
+                # char_input_tensor [1344 14 100][[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]...]
+                char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
+
                 _word_lengths = tf.reshape(self.word_lengths, shape=[s[0]*s[1]])
 
+                # lstm_use_peepholes = False
                 char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
                     use_peepholes=self.config["lstm_use_peepholes"], 
                     state_is_tuple=True, 
@@ -137,34 +163,70 @@ class MLTModel(object):
                     initializer=self.initializer,
                     reuse=False)
 
-                char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(char_lstm_cell_fw, char_lstm_cell_bw, char_input_tensor, sequence_length=_word_lengths, dtype=tf.float32, time_major=False)
+                char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
+                    char_lstm_cell_fw, char_lstm_cell_bw, 
+                    char_input_tensor, sequence_length=_word_lengths, 
+                    dtype=tf.float32, time_major=False)
                 _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
+
+                # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
+                char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
+
+                # char_output_bw [1344 100][[0.0369782448 0.0142420894 0.0041682804 0.0185243599 -0.0126576656]...]
+                char_output_bw = tf.Print(char_output_bw, [tf.shape(char_output_bw), char_output_bw], 'char_output_bw ', summarize=5)
+
                 char_output_tensor = tf.concat([char_output_fw, char_output_bw], axis=-1)
+
+                # char_output_tensor [1344 200][[0.00968829822 0.010671746 0.00669185 0.0245511737 0.00249310443]...]
+                char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+
                 char_output_tensor = tf.reshape(char_output_tensor, shape=[s[0], s[1], 2 * self.config["char_recurrent_size"]])
+
+                # char_output_tensor [32 42 200][[[-0.012360299 -0.00901429448 0.0371902511 -0.0109808315 0.00917478558]]...]
+                char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+
                 char_output_vector_size = 2 * self.config["char_recurrent_size"]
 
+                # lmcost_char_gamma = 0.0
                 if self.config["lmcost_char_gamma"] > 0.0:
                     self.loss += self.config["lmcost_char_gamma"] * self.construct_lmcost(char_output_tensor, char_output_tensor, self.sentence_lengths, self.word_ids, "separate", "lmcost_char_separate")
+                
+                # lmcost_joint_char_gamma = 0.0
                 if self.config["lmcost_joint_char_gamma"] > 0.0:
                     self.loss += self.config["lmcost_joint_char_gamma"] * self.construct_lmcost(char_output_tensor, char_output_tensor, self.sentence_lengths, self.word_ids, "joint", "lmcost_char_joint")
-
+                
+                # char_hidden_layer_size =50
                 if self.config["char_hidden_layer_size"] > 0:
                     char_output_tensor = tf.layers.dense(char_output_tensor, self.config["char_hidden_layer_size"], activation=tf.tanh, kernel_initializer=self.initializer)
                     char_output_vector_size = self.config["char_hidden_layer_size"]
 
+                    # char_output_tensor [32 42 50][[[0.0127831129 -0.00378674385 -0.0283287913 -0.021209931 0.000687278458]]...]
+                    char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+
+                # char_integration_method = concat
                 if self.config["char_integration_method"] == "concat":
                     input_tensor = tf.concat([input_tensor, char_output_tensor], axis=-1)
+
+                    # input_tensor [32 42 350][[[0.033284 -0.040754 -0.048377 0.12017 -0.13915]]...]
+                    input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
+
                     input_vector_size += char_output_vector_size
                 elif self.config["char_integration_method"] == "none":
                     input_tensor = input_tensor
                 else:
                     raise ValueError("Unknown char integration method")
 
+        # This is after concatenation of word_representations
         self.word_representations = input_tensor
 
+        # dropout_input = 0.5
         dropout_input = self.config["dropout_input"] * tf.cast(self.is_training, tf.float32) + (1.0 - tf.cast(self.is_training, tf.float32))
         input_tensor =  tf.nn.dropout(input_tensor, dropout_input, name="dropout_word")
 
+        # input_tensor [32 42 350][[[0 -0 -0 0.24034 -0.2783]]...]
+        input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
+
+        # word_recurrent_size = 300
         word_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["word_recurrent_size"], 
             use_peepholes=self.config["lstm_use_peepholes"], 
             state_is_tuple=True, 
@@ -179,19 +241,37 @@ class MLTModel(object):
         with tf.control_dependencies([tf.assert_equal(tf.shape(self.word_ids)[1], tf.reduce_max(self.sentence_lengths), message="Sentence dimensions don't match")]):
             (lstm_outputs_fw, lstm_outputs_bw), ((_, lstm_output_fw), (_, lstm_output_bw)) = tf.nn.bidirectional_dynamic_rnn(word_lstm_cell_fw, word_lstm_cell_bw, input_tensor, sequence_length=self.sentence_lengths, dtype=tf.float32, time_major=False)
 
+        # dropout_word_lstm = 0.5
         dropout_word_lstm = self.config["dropout_word_lstm"] * tf.cast(self.is_training, tf.float32) + (1.0 - tf.cast(self.is_training, tf.float32))
+        # noise_shape?
+        # word_recurrent_size = 300
         lstm_outputs_fw =  tf.nn.dropout(lstm_outputs_fw, dropout_word_lstm, noise_shape=tf.convert_to_tensor([tf.shape(self.word_ids)[0],1,self.config["word_recurrent_size"]], dtype=tf.int32))
         lstm_outputs_bw =  tf.nn.dropout(lstm_outputs_bw, dropout_word_lstm, noise_shape=tf.convert_to_tensor([tf.shape(self.word_ids)[0],1,self.config["word_recurrent_size"]], dtype=tf.int32))
+
+        # lstm_outputs_fw [32 42 300][[[0.27246663 0 0.0123384269 -0.156472668 0.175036415]]...]
+        lstm_outputs_fw = tf.Print(lstm_outputs_fw, [tf.shape(lstm_outputs_fw), lstm_outputs_fw], 'lstm_outputs_fw ', summarize=5)
+
+        # lstm_outputs_bw [32 42 300][[[-0 -0.0373351909 0 0 0.186578169]]...]
+        lstm_outputs_bw = tf.Print(lstm_outputs_bw, [tf.shape(lstm_outputs_bw), lstm_outputs_bw], 'lstm_outputs_bw ', summarize=5)
+
         lstm_outputs = tf.concat([lstm_outputs_fw, lstm_outputs_bw], -1)
 
+        # lstm_outputs [32 42 600][[[0.277638972 -0.00427084789 0 0.00701316865 -0]]...]
+        lstm_outputs = tf.Print(lstm_outputs, [tf.shape(lstm_outputs), lstm_outputs], 'lstm_outputs ', summarize=5)
+
+        # whidden_layer_size = 200
         if self.config["whidden_layer_size"] > 0:
             lstm_outputs = tf.layers.dense(lstm_outputs, self.config["whidden_layer_size"], activation=tf.tanh, kernel_initializer=self.initializer)
+
+            # lstm_outputs [32 42 200][[[-0.0930339 -0.07592123 -0.400819033 0.147020906 -0.0770602524]]...]
+            lstm_outputs = tf.Print(lstm_outputs, [tf.shape(lstm_outputs), lstm_outputs], 'lstm_outputs ', summarize=5)
 
         self.lstm_outputs = lstm_outputs
 
         lstm_output = tf.concat([lstm_output_fw, lstm_output_bw], -1)
         lstm_output = tf.nn.dropout(lstm_output, dropout_word_lstm)
 
+        # sentence_composition = attention
         if self.config["sentence_composition"] == "last":
             processed_tensor = lstm_output
             self.attention_weights_unnormalised = tf.zeros_like(self.word_ids, dtype=tf.float32)
@@ -199,9 +279,20 @@ class MLTModel(object):
             with tf.variable_scope("attention"):
                 attention_evidence = tf.layers.dense(lstm_outputs, self.config["attention_evidence_size"], activation=tf.tanh, kernel_initializer=self.initializer)
 
+                # attention_evidence [32 42 100][[[-0.1122666 -0.208284497 0.0635408163 0.072117269 0.114323549]]...]
+                attention_evidence = tf.Print(attention_evidence, [tf.shape(attention_evidence), attention_evidence], 'attention_evidence ', summarize=5)
+
                 attention_weights = tf.layers.dense(attention_evidence, 1, activation=None, kernel_initializer=self.initializer)
+
+                # attention_weights [32 42 1][[[0.175914466][0.114666343][0.0859841406][0.220286131][0.345916331]]...]
+                attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=5)
+
                 attention_weights = tf.reshape(attention_weights, shape=tf.shape(self.word_ids))
 
+                # attention_weights [32 42][[0.257553369 0.128167823 0.15162158 0.0321515091 0.0484975688]...]
+                attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=5)
+
+                # attention_activation = soft
                 if self.config["attention_activation"] == "sharp":
                     attention_weights = tf.exp(attention_weights)
                 elif self.config["attention_activation"] == "soft":
@@ -220,15 +311,29 @@ class MLTModel(object):
                 attention_weights = attention_weights / tf.reduce_sum(attention_weights, 1, keep_dims=True)
                 processed_tensor = tf.reduce_sum(lstm_outputs * attention_weights[:,:,numpy.newaxis], 1)
 
+                # processed_tensor [32 200][[0.0998472124 -0.15800871 0.180494159 0.212085128 -0.0436996967]...]
+                processed_tensor = tf.Print(processed_tensor, [tf.shape(processed_tensor), processed_tensor], 'processed_tensor ', summarize=5)
+
+        # hidden_layer_size = 50
         if self.config["hidden_layer_size"] > 0:
             processed_tensor = tf.layers.dense(processed_tensor, self.config["hidden_layer_size"], activation=tf.tanh, kernel_initializer=self.initializer)
 
+            # processed_tensor [32 50][[0.0976842418 0.178458333 -0.119485192 0.132142678 0.169890434]...]
+            processed_tensor = tf.Print(processed_tensor, [tf.shape(processed_tensor), processed_tensor], 'processed_tensor ', summarize=5)
+
         self.sentence_scores = tf.layers.dense(processed_tensor, 1, activation=tf.sigmoid, kernel_initializer=self.initializer, name="output_ff")
+
+        # self.sentence_scores (after dense) [32 1][[0.481682301][0.566274941][0.535907149][0.626509309][0.585899055]...]
+        # self.sentence_scores = tf.Print(self.sentence_scores, [tf.shape(self.sentence_scores), self.sentence_scores], 'self.sentence_scores (after dense) ', summarize=5)
+
         self.sentence_scores = tf.reshape(self.sentence_scores, shape=[tf.shape(processed_tensor)[0]])
+
+        # self.sentence_scores (after reshape) [32][0.515106499 0.51553309 0.406303078 0.582218766 0.401411533...]
+        # self.sentence_scores = tf.Print(self.sentence_scores, [tf.shape(self.sentence_scores), self.sentence_scores], 'self.sentence_scores (after reshape) ', summarize=5)
 
         self.loss += self.config["sentence_objective_weight"] * tf.reduce_sum(self.sentence_objective_weights * tf.square(self.sentence_scores - self.sentence_labels))
 
-
+        # attention_objective_weight = 0.01
         if self.config["attention_objective_weight"] > 0.0:
             self.loss += self.config["attention_objective_weight"] * \
                 (tf.reduce_sum(
@@ -251,15 +356,12 @@ class MLTModel(object):
 
         self.token_scores = [tf.where(tf.sequence_mask(self.sentence_lengths), self.attention_weights_unnormalised, tf.zeros_like(self.attention_weights_unnormalised) - 1e6)]
 
-
         if self.config["lmcost_lstm_gamma"] > 0.0:
             self.loss += self.config["lmcost_lstm_gamma"] * self.construct_lmcost(lstm_outputs_fw, lstm_outputs_bw, self.sentence_lengths, self.word_ids, "separate", "lmcost_lstm_separate")
         if self.config["lmcost_joint_lstm_gamma"] > 0.0:
             self.loss += self.config["lmcost_joint_lstm_gamma"] * self.construct_lmcost(lstm_outputs_fw, lstm_outputs_bw, self.sentence_lengths, self.word_ids, "joint", "lmcost_lstm_joint")
 
         self.train_op = self.construct_optimizer(self.config["opt_strategy"], self.loss, self.learningrate, self.config["clip"])
-
-
 
     def construct_lmcost(self, input_tensor_fw, input_tensor_bw, sentence_lengths, target_ids, lmcost_type, name):
         with tf.variable_scope(name):
