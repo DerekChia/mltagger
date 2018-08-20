@@ -15,8 +15,6 @@ except:
 from model import MLTModel
 from evaluator import MLTEvaluator
 
-G = 0
-
 def read_input_files(file_paths, max_sentence_length=-1):
     """
     Reads input files in whitespace-separated format.
