@@ -499,7 +499,7 @@ class MLTModel(object):
         session_config = tf.ConfigProto()
         session_config.gpu_options.allow_growth = self.config["tf_allow_growth"]
         session_config.gpu_options.per_process_gpu_memory_fraction = self.config["tf_per_process_gpu_memory_fraction"]
-        self.session = tf.Session(config=session_config)
+        self.session = tf.Session(config=session_config(log_device_placement=True))
         self.session.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver(max_to_keep=1)
 
