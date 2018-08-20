@@ -17,7 +17,7 @@ except:
 from model import MLTModel
 from evaluator import MLTEvaluator
 
-G = 8
+G = 0
 
 def read_input_files(file_paths, max_sentence_length=-1):
     """
@@ -137,7 +137,7 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
         random.shuffle(batches_of_sentence_ids)
 
     for count, sentence_ids_in_batch in enumerate(batches_of_sentence_ids):
-        print('############### Epoch', epoch ,'Batch', count, 'of', len(batches_of_sentence_ids) , '###############')
+        print('############### Epoch', epoch + 1,'Batch', count + 1, 'of', len(batches_of_sentence_ids) , '###############')
         batch = [data[i] for i in sentence_ids_in_batch]
         cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
 
@@ -244,5 +244,5 @@ def run_experiment(config_path):
             i += 1
 
 if __name__ == "__main__":
-    run_experiment('conf/config.conf')
+    run_experiment(sys.argv[1])
 
