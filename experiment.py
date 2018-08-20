@@ -190,29 +190,33 @@ def run_experiment(config_path):
             print("current_learningrate: " + str(learningrate))
             random.shuffle(data_train)
 
-            results_train = process_sentences(epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
+            gpus = ['/device:GPU:{}'.format(n) for n in range(8)]
 
-            if data_dev != None:
-                results_dev = process_sentences(epoch, data_dev, model, is_training=False, learningrate=0.0, config=config, name="dev")
+            for d in gpus:
+                with tf.device(d):
+                    results_train = process_sentences(epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
 
-                if math.isnan(results_dev["dev_cost_sum"]) or math.isinf(results_dev["dev_cost_sum"]):
-                    raise ValueError("Cost is NaN or Inf. Exiting.")
+                    if data_dev != None:
+                        results_dev = process_sentences(epoch, data_dev, model, is_training=False, learningrate=0.0, config=config, name="dev")
 
-                if (epoch == 0 or (model_selector_type == "high" and results_dev[model_selector] > best_selector_value) 
-                               or (model_selector_type == "low" and results_dev[model_selector] < best_selector_value)):
-                    best_epoch = epoch
-                    best_selector_value = results_dev[model_selector]
-                    model.saver.save(model.session, temp_model_path, latest_filename=os.path.basename(temp_model_path)+".checkpoint")
-                print("best_epoch: " + str(best_epoch))
+                        if math.isnan(results_dev["dev_cost_sum"]) or math.isinf(results_dev["dev_cost_sum"]):
+                            raise ValueError("Cost is NaN or Inf. Exiting.")
 
-                if config["stop_if_no_improvement_for_epochs"] > 0 and (epoch - best_epoch) >= config["stop_if_no_improvement_for_epochs"]:
-                    break
+                        if (epoch == 0 or (model_selector_type == "high" and results_dev[model_selector] > best_selector_value) 
+                                       or (model_selector_type == "low" and results_dev[model_selector] < best_selector_value)):
+                            best_epoch = epoch
+                            best_selector_value = results_dev[model_selector]
+                            model.saver.save(model.session, temp_model_path, latest_filename=os.path.basename(temp_model_path)+".checkpoint")
+                        print("best_epoch: " + str(best_epoch))
 
-                if (epoch - best_epoch) > 3:
-                    learningrate *= config["learningrate_decay"]
+                        if config["stop_if_no_improvement_for_epochs"] > 0 and (epoch - best_epoch) >= config["stop_if_no_improvement_for_epochs"]:
+                            break
 
-            while config["garbage_collection"] == True and gc.collect() > 0:
-                pass
+                        if (epoch - best_epoch) > 3:
+                            learningrate *= config["learningrate_decay"]
+
+                    while config["garbage_collection"] == True and gc.collect() > 0:
+                        pass
 
         if data_dev != None and best_epoch >= 0:
             # loading the best model so far
