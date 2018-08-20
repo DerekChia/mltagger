@@ -238,5 +238,5 @@ def run_experiment(config_path):
             i += 1
 
 if __name__ == "__main__":
-    run_experiment(sys.argv[1])
+    run_experiment('conf/config_test_dev.conf')
 
