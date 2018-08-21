@@ -195,6 +195,7 @@ def run_experiment(config_path):
 
             for gpu in gpus:
                 with tf.device(gpu):
+                    print(gpu)
                     results_train = process_sentences(epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
 
                     if data_dev != None:
