@@ -193,8 +193,8 @@ def run_experiment(config_path):
 
             gpus = ['/device:GPU:{}'.format(n) for n in range(8)]
 
-            for d in gpus:
-                with tf.device(d):
+            for gpu in gpus:
+                with tf.device(gpu):
                     results_train = process_sentences(epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
 
                     if data_dev != None:
