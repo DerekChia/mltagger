@@ -9,10 +9,10 @@ Getting Started
 -------------------------
 These are the few things you can do in this repo.
 
-1. Read notebooks with code comments in `./notebooks`
-2. Run experiment / model training with `python experiment.py config_file.conf`
-    - This will start the training process using the TSV file `./conf/config_file.config:path_train` defined in the configuration file in the `./conf` folder. An output model will be stored in path defined in `./conf/config_file.config:save`.
-3. Perform inference based on trained model with `python print_output.py ./saved_model/model.model input_file.tsv`
+1. Read notebooks with code comments in `notebooks`
+2. Run experiment / model training with `python src/experiment.py config_file.conf`
+    - This will start the training process using the TSV file `conf/config_file.config:path_train` defined in the configuration file in the `conf` folder. An output model will be stored in path defined in `conf/config_file.config:save`.
+3. Perform inference based on trained model with `python print_output.py saved_model/fce_model.model input_file.tsv`
     - This will print the original file with two additional columns: the token-level score and the sentence-level score. The latter will be the same for all tokens in a sentence.
 4. Try out the model over an interface at https://derekchia.github.io/mltagger
 
@@ -30,10 +30,14 @@ Directory Structure
         |- config.conf
     |- saved_model
         |- fce_model.model
-    |- experiment.py
-    |- model.py
-    |- evaluator.py
-    |- print_output.py
+    |- api
+        |- app.py
+        |- serve.py
+    |- src
+        |- experiment.py
+        |- model.py
+        |- evaluator.py
+        |- print_output.py
     |- README.md
 
 Input Data format
