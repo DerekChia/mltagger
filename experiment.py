@@ -12,7 +12,7 @@ try:
 except:
     import configparser
 
-from model import MLTModel
+from model_without_print import MLTModel
 from evaluator import MLTEvaluator
 
 def read_input_files(file_paths, max_sentence_length=-1):
@@ -33,10 +33,9 @@ def read_input_files(file_paths, max_sentence_length=-1):
                     line_parts = line.split()
                     # Check if input file has both word and label
                     # Might not be a necessary check since input may not have a ground truth
-                    assert(len(line_parts) >= 2), line
-                    # Check that 
-                    assert(len(line_parts) == line_length or line_length == None)
-                    line_length = len(line_parts)
+                    # assert(len(line_parts) >= 2), line
+                    # assert(len(line_parts) == line_length or line_length == None)
+                    # line_length = len(line_parts)
                     sentence.append(line_parts)
                 elif len(line) == 0 and len(sentence) > 0:
                     if max_sentence_length <= 0 or len(sentence) <= max_sentence_length:
@@ -45,9 +44,9 @@ def read_input_files(file_paths, max_sentence_length=-1):
             if len(sentence) > 0:
                 if max_sentence_length <= 0 or len(sentence) <= max_sentence_length:
                     sentences.append(sentence)
+    
+    print(sentences)
     return sentences
-
-
 
 def parse_config(config_section, config_path):
     """
@@ -178,17 +177,18 @@ def run_experiment(config_path):
     
     # gpus = ['/device:GPU:{}'.format(n) for n in range(8)]
 
-    # for gpu in gpus:
+    # # for gpu in gpus:
+    # #     with tf.device(gpu):
+    # #         print(gpu)
+    # for gpu in gpus
+    #     # with tf.device('/device:GPU:2'):
     #     with tf.device(gpu):
-    #         print(gpu)
-
-    with tf.device('/device:GPU:2'):
-        model = MLTModel(config)
-        model.build_vocabs(data_train, data_dev, data_test, config["preload_vectors"])
-        model.construct_network()
-        model.initialize_session()
-        if config["preload_vectors"] != None:
-            model.preload_word_embeddings(config["preload_vectors"])
+    model = MLTModel(config)
+    model.build_vocabs(data_train, data_dev, data_test, config["preload_vectors"])
+    model.construct_network()
+    model.initialize_session()
+    if config["preload_vectors"] != None:
+        model.preload_word_embeddings(config["preload_vectors"])
 
     print("parameter_count: " + str(model.get_parameter_count()))
     print("parameter_count_without_word_embeddings: " + str(model.get_parameter_count_without_word_embeddings()))
@@ -247,5 +247,5 @@ def run_experiment(config_path):
             i += 1
 
 if __name__ == "__main__":
-    run_experiment('conf/config_test_dev.conf')
+    run_experiment(sys.argv[1])
 

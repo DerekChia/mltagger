@@ -441,6 +441,7 @@ class MLTModel(object):
             token = re.sub(r'\d', '0', token)
 
         token_id = None
+        # print(token2id)
         if singletons != None and token in singletons and token in token2id and unk_token != None and numpy.random.uniform() < singletons_prob:
             token_id = token2id[unk_token]
         elif token in token2id:
@@ -469,11 +470,14 @@ class MLTModel(object):
 
         singletons = self.singletons if is_training == True else None
         singletons_prob = self.config["singletons_prob"] if is_training == True else 0.0
+        
         for i in range(len(batch)):
             count_interesting_labels = numpy.array([1.0 if batch[i][j][-1] != self.config["default_label"] else 0.0 for j in range(len(batch[i]))]).sum()
             sentence_labels[i] = 1.0 if count_interesting_labels >= 1.0 else 0.0
 
             for j in range(len(batch[i])):
+                # print(batch[i][j][0])
+                # print(len(self.word2id))
                 word_ids[i][j] = self.translate2id(batch[i][j][0], self.word2id, self.UNK, lowercase=self.config["lowercase"], replace_digits=self.config["replace_digits"], singletons=singletons, singletons_prob=singletons_prob)
                 word_labels[i][j] = 0.0 if batch[i][j][-1] == self.config["default_label"] else 1.0
                 word_lengths[i][j] = len(batch[i][j][0])
@@ -488,6 +492,9 @@ class MLTModel(object):
         input_dictionary = {self.word_ids: word_ids, self.char_ids: char_ids, self.sentence_lengths: sentence_lengths, self.word_lengths: word_lengths, self.word_labels: word_labels, self.word_objective_weights: word_objective_weights, self.sentence_labels: sentence_labels, self.sentence_objective_weights: sentence_objective_weights, self.learningrate: learningrate, self.is_training: is_training}
         return input_dictionary
 
+    def test(self):
+        print('testing')
+        print(len(self.word2id))
 
     def process_batch(self, batch, is_training, learningrate):
         feed_dict = self.create_input_dictionary_for_batch(batch, is_training, learningrate)
@@ -560,7 +567,7 @@ class MLTModel(object):
             labeler.word2id = dump["word2id"]
             labeler.char2id = dump["char2id"]
             labeler.singletons = dump["singletons"]
-
+            print('len of word2id', len(labeler.word2id))
             labeler.construct_network()
             labeler.initialize_session()
 

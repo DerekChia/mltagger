@@ -473,6 +473,8 @@ class MLTModel(object):
             sentence_labels[i] = 1.0 if count_interesting_labels >= 1.0 else 0.0
 
             for j in range(len(batch[i])):
+                # print(batch[i][j][0])
+                # print(len(self.word2id))
                 word_ids[i][j] = self.translate2id(batch[i][j][0], self.word2id, self.UNK, lowercase=self.config["lowercase"], replace_digits=self.config["replace_digits"], singletons=singletons, singletons_prob=singletons_prob)
                 word_labels[i][j] = 0.0 if batch[i][j][-1] == self.config["default_label"] else 1.0
                 word_lengths[i][j] = len(batch[i][j][0])
@@ -489,10 +491,16 @@ class MLTModel(object):
 
 
     def process_batch(self, batch, is_training, learningrate):
+        # Constructing feed_dict
+        # batch = [
+        # [['Not', 'c'], ['only', 'c'], ['as', 'c'], ['a', 'c'], ['hobby', 'c'], ['.', 'c']], # First sentence
+        # [['They', 'c'], ['use', 'c'], ['computers', 'c'], ['for', 'c'], ['their', 'c'], ['works', 'i'], ['.', 'c']] # Second sentence
+        #]
         feed_dict = self.create_input_dictionary_for_batch(batch, is_training, learningrate)
+        # Getting cost, predicted label and probabilities for every batch
+        # feed_dict = {self.word_ids: word_ids, self.char_ids: char_ids, self.sentence_lengths: sentence_lengths, ...}
         cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
         return cost, sentence_scores, token_scores
-
 
     def initialize_session(self):
         tf.set_random_seed(self.config["random_seed"])
@@ -559,7 +567,7 @@ class MLTModel(object):
             labeler.word2id = dump["word2id"]
             labeler.char2id = dump["char2id"]
             labeler.singletons = dump["singletons"]
-
+            # print(len(labeler.word2id))
             labeler.construct_network()
             labeler.initialize_session()
 
