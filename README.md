@@ -1,12 +1,42 @@
-Multi-Level Tagger
+Understanding Multi-Level Tagger
 ==============================
 
-Run experiment with 
+This repo is based on the paper [Zero-shot Sequence Labeling: Transferring Knowledge from Sentences to Tokens](https://arxiv.org/pdf/1805.02214.pdf) by Marek Rei and Anders Søgaard. The original code repositary can be found [here](https://github.com/marekrei/mltagger). We are extremely grateful to the authors for their work and an opportunity to go deep into understanding their paper.
 
-    python experiment.py config_file.conf
+Referencing their code, we have attempted to understand the paper by breaking down the code into bite-sized information peppered with notes and comments. 
 
+Getting Started
+-------------------------
+These are the few things you can do in this repo.
 
-Data format
+1. Read notebooks with code comments in `./notebooks`
+2. Run experiment / model training with `python experiment.py config_file.conf`
+    - This will start the training process using the TSV file `./conf/config_file.config:path_train` defined in the configuration file in the `./conf` folder. An output model will be stored in path defined in `./conf/config_file.config:save`.
+3. Perform inference based on trained model with `python print_output.py ./saved_model/model.model input_file.tsv`
+    - This will print the original file with two additional columns: the token-level score and the sentence-level score. The latter will be the same for all tokens in a sentence.
+4. Try out the model over an interface at https://derekchia.github.io/mltagger
+
+Directory Structure
+-------------------------
+
+    |- notebooks
+        |- experiment.ipynb
+        |- model.ipynb
+        |- evaluator.ipynb
+        |- print_output.ipynb
+    |- data
+        |- glove.6B.300d.txt
+    |- conf
+        |- config.conf
+    |- saved_model
+        |- fce_model.model
+    |- experiment.py
+    |- model.py
+    |- evaluator.py
+    |- print_output.py
+    |- README.md
+
+Input Data format
 -------------------------
 
 The training and test data is expected in standard CoNLL-type tab-separated format. One word per line, separate column for token and label, empty line between sentences.
@@ -18,20 +48,21 @@ For error detection, this would be something like:
     the     c
     show    c
     
+See the original dataset for error detection [here](https://ilexir.co.uk/datasets/index.html).
 
-The binary word-level and sentence-level labels are constructed from this format automatically, based on the *default_label* value.
+The binary word-level and sentence-level labels are constructed from this format automatically, based on the *default_label* value. Please **remember** to change the *default_label* before you run `experiment.py`.
+
 Any word with *default_label* gets label 0, any word with other labels gets assigned 1.
-Any sentence that contains only *default_label* labels is assigned a sentence-level label 0, any sentence containing different labels gets assigned 1.
+Any sentence that contains only *default_label* labels is assigned a sentence-level label 0, any sentence containing different labels gets assigned 1. 
 
+Referencing the use case of error detection, the correct word will be represented by label 0 and incorrect word will be assigned 1. If the entire sentence only contain default label (0 / correct), the sentence-level label will be 0 - indicating no error found in the sentence. Otherwise, if sentence contains word label(s) different from label 0, the sentence-level label will be 1. 
 
-Printing model output
+This is done by `model.py`:
+> count_interesting_labels = numpy.array([1.0 if batch[i][j][-1] != self.config["default_label"] else 0.0 for j in range(len(batch[i]))]).sum()
+
+Notebooks
 -------------------------
-
-Print output from a saved model with
-
-    python print_output.py saved_model_path.model input_file.tsv
-
-This will print the original file with two additional columns: the token-level score and the sentence-level score. The latter will be the same for all tokens in a sentence.
+The `notebooks` folder contains jupyter notebooks packed with comments to help starters (like myself) get through the code. Feel free to put in issues or send in pull request if you spot any bugs.
 
 
 Configuration
@@ -81,15 +112,28 @@ Edit the values in config.conf as needed:
 * **lmcost_char_gamma** - Char-level LMCost weight
 * **lmcost_joint_char_gamma** - Joint char-level LMCost weight
 * **char_integration_method** - Method for combining character-based representations with word embeddings.
+    - Defaults to *concat*. Option of *concat* or *none*
 * **save** - Path for saving the model.
+    - Defaults to *None*. Please add in path to save model.
 * **garbage_collection** - Whether to force garbage collection.
+    - Defaults to *False*. Not in use.
 * **lstm_use_peepholes** - Whether LSTMs use the peephole architecture.
+    - Defaults to *False*
 * **whidden_layer_size** - Hidden layer size after the word-level LSTMs.
+    - Defaults to *200*
 * **attention_evidence_size** - Layer size for predicting attention weights.
+    - Defaults to *100*
 * **attention_activation** - Type of activation to apply for attention weights.
+    - Defaults to *soft*. Option of *sharp*, *soft*, *linear*
 * **attention_objective_weight** - The weight for pushing the attention weights to a binary classification range.
+    - Defaults to *0.01*
 * **sentence_objective_weight** - Sentence-level objective weight.
+    - Defaults to *1.0*
 * **sentence_objective_persistent** - Whether the sentence-level objective should always be given to the network.
+    - Defaults to *True*
 * **word_objective_weight** - Word-level classification objective weight.
+    - Defaults to *0.0*
 * **sentence_composition** - The method for sentence composition.
+    - Defaults to *attention*. Option of *last* or *attention*
 * **random_seed** - Random seed.
+    - Defaults to *100*
