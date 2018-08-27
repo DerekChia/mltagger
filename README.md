@@ -10,9 +10,9 @@ Getting Started
 These are the few things you can do in this repo.
 
 1. Read notebooks with code comments in `notebooks`
-2. Run experiment / model training with `python src/experiment.py config_file.conf`
+2. Run experiment / model training with `python src/experiment.py conf/config_file.conf`
     - This will start the training process using the TSV file `conf/config_file.config:path_train` defined in the configuration file in the `conf` folder. An output model will be stored in path defined in `conf/config_file.config:save`.
-3. Perform inference based on trained model with `python print_output.py saved_model/fce_model.model input_file.tsv`
+3. Perform inference based on trained model with `python src/print_output.py saved_model/fce_model.model input_file.tsv`
     - This will print the original file with two additional columns: the token-level score and the sentence-level score. The latter will be the same for all tokens in a sentence.
 4. Try out the model over an interface at https://derekchia.github.io/mltagger
 
@@ -25,7 +25,7 @@ Directory Structure
         |- evaluator.ipynb
         |- print_output.ipynb
     |- data
-        |- glove.6B.300d.txt
+        |- glove.6B.300d.txt (not provided due to size limit)
     |- conf
         |- config.conf
     |- saved_model
@@ -33,6 +33,7 @@ Directory Structure
     |- api
         |- app.py
         |- serve.py
+        |- model (folder)
     |- src
         |- experiment.py
         |- model.py
@@ -79,7 +80,7 @@ Edit the values in config.conf as needed:
 * **path_dev** - Path to the development data, used for choosing the best epoch.
     - e.g. PATH_TO/fce-public.dev.original.tsv
 * **path_test** - Path to the test file. Can contain multiple files, colon separated.
-    - PATH_TO/fce-public.test.original.tsv
+    - e.g. PATH_TO/fce-public.test.original.tsv
 * **default_label** - The most common (negative) label in the dataset. For example, the correct label in error detection or neutral label in sentiment detection.
     - Defaults to *O*. **CHANGE THIS**
 * **model_selector** - What is measured on the dev set for model selection. For example, "dev_sent_f:high" means we're looking for the highest sentence-level F score on the development set.
