@@ -60,20 +60,23 @@ For error detection, this would be something like:
     
 See the original dataset for error detection [here](https://ilexir.co.uk/datasets/index.html).
 
-The binary word-level and sentence-level labels are constructed from this format automatically, based on the *default_label* value. Please **remember** to change the *default_label* before you run `experiment.py`.
+The binary word-level and sentence-level labels are constructed from this format automatically, based on the *default_label* value. Please **remember** to change the *default_label* before you run `src/experiment.py`.
 
 Any word with *default_label* gets label 0, any word with other labels gets assigned 1.
 Any sentence that contains only *default_label* labels is assigned a sentence-level label 0, any sentence containing different labels gets assigned 1. 
 
 Referencing the use case of error detection, the correct word will be represented by label 0 and incorrect word will be assigned 1. If the entire sentence only contain default label (0 / correct), the sentence-level label will be 0 - indicating no error found in the sentence. Otherwise, if sentence contains word label(s) different from label 0, the sentence-level label will be 1. 
 
-This label translation is done by the following line in `model.py`:
+This label translation is done by the following line in `src/model.py`:
 > count_interesting_labels = numpy.array([1.0 if batch[i][j][-1] != self.config["default_label"] else 0.0 for j in range(len(batch[i]))]).sum()
 
 Notebooks
 -------------------------
 The `notebooks` folder contains jupyter notebooks packed with comments to help starters (like myself) get through the code. Feel free to put in issues or send in pull request if you spot any bugs.
 
+Notebooks
+-------------------------
+> pip install src/requirements.txt
 
 Configuration
 -------------------------
