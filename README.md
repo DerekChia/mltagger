@@ -1,7 +1,7 @@
 Understanding Multi-Level Tagger
 ==============================
 
-This repo is based on the paper [Zero-shot Sequence Labeling: Transferring Knowledge from Sentences to Tokens](https://arxiv.org/pdf/1805.02214.pdf) by Marek Rei and Anders Søgaard. The original code repositary can be found [here](https://github.com/marekrei/mltagger). We are extremely grateful to the authors for their work and an opportunity to go deep into understanding their paper.
+This repo is based on the paper [Zero-shot Sequence Labeling: Transferring Knowledge from Sentences to Tokens](https://arxiv.org/pdf/1805.02214.pdf) by Marek Rei and Anders Søgaard. The original code repositary can be found [here](https://github.com/marekrei/mltagger). We ([my co-worker](https://github.com/fieryheart34) and I) are extremely grateful to the authors for their work and an opportunity to go deep into understanding their paper.
 
 Referencing their code, we have attempted to understand the paper by breaking down the code into bite-sized information peppered with notes and comments. 
 
@@ -57,7 +57,7 @@ Any sentence that contains only *default_label* labels is assigned a sentence-le
 
 Referencing the use case of error detection, the correct word will be represented by label 0 and incorrect word will be assigned 1. If the entire sentence only contain default label (0 / correct), the sentence-level label will be 0 - indicating no error found in the sentence. Otherwise, if sentence contains word label(s) different from label 0, the sentence-level label will be 1. 
 
-This is done by `model.py`:
+This label translation is done by the following line in `model.py`:
 > count_interesting_labels = numpy.array([1.0 if batch[i][j][-1] != self.config["default_label"] else 0.0 for j in range(len(batch[i]))]).sum()
 
 Notebooks
