@@ -37,7 +37,6 @@ Directory Structure
     |- api
         |- app.py
         |- serve.py
-        |- model (folder)
     |- src
         |- experiment.py
         |- model.py
