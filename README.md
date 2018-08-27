@@ -11,7 +11,7 @@ These are the few things you can do in this repo.
 
 1. Read notebooks with code comments in `notebooks`
 2. Run experiment / model training with `python src/experiment.py conf/config_file.conf`
-    - This will start the training process using the TSV file `conf/config_file.config:path_train` defined in the configuration file in the `conf` folder. An output model will be stored in path defined in `conf/config_file.config:save`.
+    - This will start the training process using the TSV file `conf/config_file.config` defined in the configuration file in the `conf` folder. An output model will be stored in path defined in `conf/config_file.config:save`.
 3. Perform inference based on trained model with `python src/print_output.py saved_model/fce_model.model input_file.tsv`
     - This will print the original file with two additional columns: the token-level score and the sentence-level score. The latter will be the same for all tokens in a sentence.
 4. Try out the model over an interface at https://derekchia.github.io/mltagger
@@ -172,7 +172,7 @@ Edit the values in config.conf as needed:
 * **attention_activation** - Type of activation to apply for attention weights.
     - Defaults to *soft*. Option of *sharp*, *soft*, *linear*
 * **attention_objective_weight** - The weight for pushing the attention weights to a binary classification range.
-    - Defaults to *0.01*
+    - Defaults to *0.01* Note: refers to gamma eq. 14 in the paper
 * **sentence_objective_weight** - Sentence-level objective weight.
     - Defaults to *1.0*
 * **sentence_objective_persistent** - Whether the sentence-level objective should always be given to the network.
