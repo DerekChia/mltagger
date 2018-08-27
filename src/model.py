@@ -21,6 +21,7 @@ class MLTModel(object):
         self.char2id = None
         self.singletons = None
 
+
     def build_vocabs(self, data_train, data_dev, data_test, embedding_path=None):
         data_source = list(data_train)
         if self.config["vocab_include_devtest"]:
@@ -117,7 +118,7 @@ class MLTModel(object):
         input_tensor = tf.nn.embedding_lookup(self.word_embeddings, self.word_ids)
 
         # input_tensor [32 42 300][[[0.033284 -0.040754 -0.048377 0.12017 -0.13915]]...]
-        input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
+        # input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
 
         # word_embedding_size = 300        
         input_vector_size = self.config["word_embedding_size"]
@@ -138,7 +139,7 @@ class MLTModel(object):
                 s = tf.shape(char_input_tensor)
 
                 # char_input_tensor [32 42 14 100][[[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]]...]
-                char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
+                # char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
 
                 # Reshaping char_input_tensor and word_lengths - Why?
                 # self.char_embeddings (97, 100), word_lengths (32, 42)
@@ -146,7 +147,7 @@ class MLTModel(object):
                 char_input_tensor = tf.reshape(char_input_tensor, shape=[s[0]*s[1], s[2], self.config["char_embedding_size"]])
 
                 # char_input_tensor [1344 14 100][[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]...]
-                char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
+                # char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
 
                 _word_lengths = tf.reshape(self.word_lengths, shape=[s[0]*s[1]])
 
@@ -169,20 +170,20 @@ class MLTModel(object):
                 _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
 
                 # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
-                char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
+                # char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
 
                 # char_output_bw [1344 100][[0.0369782448 0.0142420894 0.0041682804 0.0185243599 -0.0126576656]...]
-                char_output_bw = tf.Print(char_output_bw, [tf.shape(char_output_bw), char_output_bw], 'char_output_bw ', summarize=5)
+                # char_output_bw = tf.Print(char_output_bw, [tf.shape(char_output_bw), char_output_bw], 'char_output_bw ', summarize=5)
 
                 char_output_tensor = tf.concat([char_output_fw, char_output_bw], axis=-1)
 
                 # char_output_tensor [1344 200][[0.00968829822 0.010671746 0.00669185 0.0245511737 0.00249310443]...]
-                char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+                # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
 
                 char_output_tensor = tf.reshape(char_output_tensor, shape=[s[0], s[1], 2 * self.config["char_recurrent_size"]])
 
                 # char_output_tensor [32 42 200][[[-0.012360299 -0.00901429448 0.0371902511 -0.0109808315 0.00917478558]]...]
-                char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+                # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
 
                 char_output_vector_size = 2 * self.config["char_recurrent_size"]
 
@@ -200,14 +201,14 @@ class MLTModel(object):
                     char_output_vector_size = self.config["char_hidden_layer_size"]
 
                     # char_output_tensor [32 42 50][[[0.0127831129 -0.00378674385 -0.0283287913 -0.021209931 0.000687278458]]...]
-                    char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+                    # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
 
                 # char_integration_method = concat
                 if self.config["char_integration_method"] == "concat":
                     input_tensor = tf.concat([input_tensor, char_output_tensor], axis=-1)
 
                     # input_tensor [32 42 350][[[0.033284 -0.040754 -0.048377 0.12017 -0.13915]]...]
-                    input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
+                    # input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
 
                     input_vector_size += char_output_vector_size
                 elif self.config["char_integration_method"] == "none":
@@ -223,7 +224,7 @@ class MLTModel(object):
         input_tensor =  tf.nn.dropout(input_tensor, dropout_input, name="dropout_word")
 
         # input_tensor [32 42 350][[[0 -0 -0 0.24034 -0.2783]]...]
-        input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
+        # input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
 
         # word_recurrent_size = 300
         word_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["word_recurrent_size"], 
@@ -248,22 +249,22 @@ class MLTModel(object):
         lstm_outputs_bw =  tf.nn.dropout(lstm_outputs_bw, dropout_word_lstm, noise_shape=tf.convert_to_tensor([tf.shape(self.word_ids)[0],1,self.config["word_recurrent_size"]], dtype=tf.int32))
 
         # lstm_outputs_fw [32 42 300][[[0.27246663 0 0.0123384269 -0.156472668 0.175036415]]...]
-        lstm_outputs_fw = tf.Print(lstm_outputs_fw, [tf.shape(lstm_outputs_fw), lstm_outputs_fw], 'lstm_outputs_fw ', summarize=5)
+        # lstm_outputs_fw = tf.Print(lstm_outputs_fw, [tf.shape(lstm_outputs_fw), lstm_outputs_fw], 'lstm_outputs_fw ', summarize=5)
 
         # lstm_outputs_bw [32 42 300][[[-0 -0.0373351909 0 0 0.186578169]]...]
-        lstm_outputs_bw = tf.Print(lstm_outputs_bw, [tf.shape(lstm_outputs_bw), lstm_outputs_bw], 'lstm_outputs_bw ', summarize=5)
+        # lstm_outputs_bw = tf.Print(lstm_outputs_bw, [tf.shape(lstm_outputs_bw), lstm_outputs_bw], 'lstm_outputs_bw ', summarize=5)
 
         lstm_outputs = tf.concat([lstm_outputs_fw, lstm_outputs_bw], -1)
 
         # lstm_outputs [32 42 600][[[0.277638972 -0.00427084789 0 0.00701316865 -0]]...]
-        lstm_outputs = tf.Print(lstm_outputs, [tf.shape(lstm_outputs), lstm_outputs], 'lstm_outputs ', summarize=5)
+        # lstm_outputs = tf.Print(lstm_outputs, [tf.shape(lstm_outputs), lstm_outputs], 'lstm_outputs ', summarize=5)
 
         # whidden_layer_size = 200
         if self.config["whidden_layer_size"] > 0:
             lstm_outputs = tf.layers.dense(lstm_outputs, self.config["whidden_layer_size"], activation=tf.tanh, kernel_initializer=self.initializer)
 
             # lstm_outputs [32 42 200][[[-0.0930339 -0.07592123 -0.400819033 0.147020906 -0.0770602524]]...]
-            lstm_outputs = tf.Print(lstm_outputs, [tf.shape(lstm_outputs), lstm_outputs], 'lstm_outputs ', summarize=5)
+            # lstm_outputs = tf.Print(lstm_outputs, [tf.shape(lstm_outputs), lstm_outputs], 'lstm_outputs ', summarize=5)
 
         self.lstm_outputs = lstm_outputs
 
@@ -279,17 +280,17 @@ class MLTModel(object):
                 attention_evidence = tf.layers.dense(lstm_outputs, self.config["attention_evidence_size"], activation=tf.tanh, kernel_initializer=self.initializer)
 
                 # attention_evidence [32 42 100][[[-0.1122666 -0.208284497 0.0635408163 0.072117269 0.114323549]]...]
-                attention_evidence = tf.Print(attention_evidence, [tf.shape(attention_evidence), attention_evidence], 'attention_evidence ', summarize=5)
+                # attention_evidence = tf.Print(attention_evidence, [tf.shape(attention_evidence), attention_evidence], 'attention_evidence ', summarize=5)
 
                 attention_weights = tf.layers.dense(attention_evidence, 1, activation=None, kernel_initializer=self.initializer)
 
                 # attention_weights [32 42 1][[[0.175914466][0.114666343][0.0859841406][0.220286131][0.345916331]]...]
-                attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=5)
+                # attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=5)
 
                 attention_weights = tf.reshape(attention_weights, shape=tf.shape(self.word_ids))
 
                 # attention_weights [32 42][[0.257553369 0.128167823 0.15162158 0.0321515091 0.0484975688]...]
-                attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=5)
+                # attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=5)
 
                 # attention_activation = soft
                 if self.config["attention_activation"] == "sharp":
@@ -311,14 +312,14 @@ class MLTModel(object):
                 processed_tensor = tf.reduce_sum(lstm_outputs * attention_weights[:,:,numpy.newaxis], 1)
 
                 # processed_tensor [32 200][[0.0998472124 -0.15800871 0.180494159 0.212085128 -0.0436996967]...]
-                processed_tensor = tf.Print(processed_tensor, [tf.shape(processed_tensor), processed_tensor], 'processed_tensor ', summarize=5)
+                # processed_tensor = tf.Print(processed_tensor, [tf.shape(processed_tensor), processed_tensor], 'processed_tensor ', summarize=5)
 
         # hidden_layer_size = 50
         if self.config["hidden_layer_size"] > 0:
             processed_tensor = tf.layers.dense(processed_tensor, self.config["hidden_layer_size"], activation=tf.tanh, kernel_initializer=self.initializer)
 
             # processed_tensor [32 50][[0.0976842418 0.178458333 -0.119485192 0.132142678 0.169890434]...]
-            processed_tensor = tf.Print(processed_tensor, [tf.shape(processed_tensor), processed_tensor], 'processed_tensor ', summarize=5)
+            # processed_tensor = tf.Print(processed_tensor, [tf.shape(processed_tensor), processed_tensor], 'processed_tensor ', summarize=5)
 
         self.sentence_scores = tf.layers.dense(processed_tensor, 1, activation=tf.sigmoid, kernel_initializer=self.initializer, name="output_ff")
 
@@ -440,6 +441,7 @@ class MLTModel(object):
             token = re.sub(r'\d', '0', token)
 
         token_id = None
+        # print(token2id)
         if singletons != None and token in singletons and token in token2id and unk_token != None and numpy.random.uniform() < singletons_prob:
             token_id = token2id[unk_token]
         elif token in token2id:
@@ -468,6 +470,7 @@ class MLTModel(object):
 
         singletons = self.singletons if is_training == True else None
         singletons_prob = self.config["singletons_prob"] if is_training == True else 0.0
+        
         for i in range(len(batch)):
             count_interesting_labels = numpy.array([1.0 if batch[i][j][-1] != self.config["default_label"] else 0.0 for j in range(len(batch[i]))]).sum()
             sentence_labels[i] = 1.0 if count_interesting_labels >= 1.0 else 0.0
@@ -489,22 +492,19 @@ class MLTModel(object):
         input_dictionary = {self.word_ids: word_ids, self.char_ids: char_ids, self.sentence_lengths: sentence_lengths, self.word_lengths: word_lengths, self.word_labels: word_labels, self.word_objective_weights: word_objective_weights, self.sentence_labels: sentence_labels, self.sentence_objective_weights: sentence_objective_weights, self.learningrate: learningrate, self.is_training: is_training}
         return input_dictionary
 
+    def test(self):
+        print('testing')
+        print(len(self.word2id))
 
     def process_batch(self, batch, is_training, learningrate):
-        # Constructing feed_dict
-        # batch = [
-        # [['Not', 'c'], ['only', 'c'], ['as', 'c'], ['a', 'c'], ['hobby', 'c'], ['.', 'c']], # First sentence
-        # [['They', 'c'], ['use', 'c'], ['computers', 'c'], ['for', 'c'], ['their', 'c'], ['works', 'i'], ['.', 'c']] # Second sentence
-        #]
         feed_dict = self.create_input_dictionary_for_batch(batch, is_training, learningrate)
-        # Getting cost, predicted label and probabilities for every batch
-        # feed_dict = {self.word_ids: word_ids, self.char_ids: char_ids, self.sentence_lengths: sentence_lengths, ...}
         cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
         return cost, sentence_scores, token_scores
 
+
     def initialize_session(self):
         tf.set_random_seed(self.config["random_seed"])
-        session_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+        session_config = tf.ConfigProto()
         session_config.gpu_options.allow_growth = self.config["tf_allow_growth"]
         session_config.gpu_options.per_process_gpu_memory_fraction = self.config["tf_per_process_gpu_memory_fraction"]
         self.session = tf.Session(config=session_config)
@@ -567,7 +567,7 @@ class MLTModel(object):
             labeler.word2id = dump["word2id"]
             labeler.char2id = dump["char2id"]
             labeler.singletons = dump["singletons"]
-            # print(len(labeler.word2id))
+            print('len of word2id', len(labeler.word2id))
             labeler.construct_network()
             labeler.initialize_session()
 

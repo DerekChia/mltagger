@@ -25,8 +25,11 @@ Directory Structure
         |- model.ipynb
         |- evaluator.ipynb
         |- print_output.ipynb
-    |- data
-        |- glove.6B.300d.txt (not provided due to size limit)
+    |- data (data files not provided due to size limit)
+        |- get_data.py
+        |- embeddings/glove.6B.300d.txt
+        |- fce/fce-public.{dev,train,test}.original.tsv
+        |- twitter/
     |- conf
         |- config.conf
     |- saved_model
@@ -40,6 +43,7 @@ Directory Structure
         |- model.py
         |- evaluator.py
         |- print_output.py
+        |- requirements.txt
     |- README.md
 
 Input Data format
