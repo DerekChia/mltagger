@@ -44,8 +44,6 @@ def read_input_files(file_paths, max_sentence_length=-1):
             if len(sentence) > 0:
                 if max_sentence_length <= 0 or len(sentence) <= max_sentence_length:
                     sentences.append(sentence)
-    
-    print(sentences)
     return sentences
 
 def parse_config(config_section, config_path):
