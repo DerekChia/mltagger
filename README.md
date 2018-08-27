@@ -26,7 +26,7 @@ Directory Structure
         |- evaluator.ipynb
         |- print_output.ipynb
     |- data (data files not provided due to size limit)
-        |- get_data.py
+        |- get_data.py (WIP)
         |- embeddings/glove.6B.300d.txt
         |- fce/fce-public.{dev,train,test}.original.tsv
         |- twitter/
@@ -74,14 +74,19 @@ Notebooks
 -------------------------
 The `notebooks` folder contains jupyter notebooks packed with comments to help starters (like myself) get through the code. Feel free to put in issues or send in pull request if you spot any bugs.
 
-Notebooks
+Dependencies
 -------------------------
 > pip install src/requirements.txt
+
+* Flask
+* Flask-Cors
+* Numpy
+* Tensorflow
 
 Configuration
 -------------------------
 
-Edit the values in config.conf as needed:
+Edit the values in conf/CONFIG_FILE.conf as needed:
 
 * **path_train** - Path to the training data, in CoNLL tab-separated format. One word per line, first column is the word, last column is the label. Empty lines between sentences.
     - e.g. PATH_TO/fce-public.train.original.tsv
