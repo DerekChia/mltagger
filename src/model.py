@@ -21,7 +21,6 @@ class MLTModel(object):
         self.char2id = None
         self.singletons = None
 
-
     def build_vocabs(self, data_train, data_dev, data_test, embedding_path=None):
         data_source = list(data_train)
         if self.config["vocab_include_devtest"]:
