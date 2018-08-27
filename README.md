@@ -14,7 +14,8 @@ These are the few things you can do in this repo.
     - This will start the training process using the TSV file `conf/config_file.config` defined in the configuration file in the `conf` folder. An output model will be stored in path defined in `conf/config_file.config:save`.
 3. Perform inference based on trained model with `python src/print_output.py saved_model/fce_model.model input_file.tsv`
     - This will print the original file with two additional columns: the token-level score and the sentence-level score. The latter will be the same for all tokens in a sentence.
-4. Try out the model over an interface at https://derekchia.github.io/mltagger
+4. Try hosting the API using `python api/app.py saved_model/fce_model.model`
+5. Try out the model over an interface at https://derekchia.github.io/mltagger
 
 Directory Structure
 -------------------------
