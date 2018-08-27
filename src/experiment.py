@@ -146,13 +146,6 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
 
 
 def run_experiment(config_path):
-
-    # gpus = ['/device:GPU:{}'.format(n) for n in range(8)]
-
-    # for gpu in gpus:
-    #     with tf.device(gpu):
-    #         print(gpu)
-
     config = parse_config("config", config_path)
     temp_model_path = config_path + ".model"
     if "random_seed" in config:
@@ -173,14 +166,6 @@ def run_experiment(config_path):
         for path_test in config["path_test"].strip().split(":"):
             data_test += read_input_files(path_test)
     
-    # gpus = ['/device:GPU:{}'.format(n) for n in range(8)]
-
-    # # for gpu in gpus:
-    # #     with tf.device(gpu):
-    # #         print(gpu)
-    # for gpu in gpus
-    #     # with tf.device('/device:GPU:2'):
-    #     with tf.device(gpu):
     model = MLTModel(config)
     model.build_vocabs(data_train, data_dev, data_test, config["preload_vectors"])
     model.construct_network()
