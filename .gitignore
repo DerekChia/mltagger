@@ -1,6 +1,5 @@
-data
+data/*
 results
-saved_model
 
 # General
 .DS_Store
