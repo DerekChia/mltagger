@@ -1,5 +1,5 @@
-data/*
-results
+data/
+results/
 
 # General
 .DS_Store
