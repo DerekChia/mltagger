@@ -493,10 +493,8 @@ class MLTModel(object):
 
     def process_batch(self, batch, is_training, learningrate):
         feed_dict = self.create_input_dictionary_for_batch(batch, is_training, learningrate)
-        for i, d in enumerate(['/gpu:0', '/gpu:1', '/gpu:2', '/gpu:3']):
-            with tf.device(d):
-                cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
-                return cost, sentence_scores, token_scores
+        cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
+        return cost, sentence_scores, token_scores
 
 
     def initialize_session(self):
@@ -507,6 +505,7 @@ class MLTModel(object):
         self.session = tf.Session(config=session_config)
         self.session.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver(max_to_keep=1)
+
 
     def get_parameter_count(self):
         total_parameters = 0
