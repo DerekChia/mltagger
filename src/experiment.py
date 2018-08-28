@@ -132,22 +132,22 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
 
     for count, sentence_ids_in_batch in enumerate(batches_of_sentence_ids):
         print('############### Epoch', epoch + 1,'Batch', count + 1, 'of', len(batches_of_sentence_ids) , '###############')
-        if count % 0 = 0:
+        if count % 0 == 0:
             with tf.device('/gpu:0'):
                 batch = [data[i] for i in sentence_ids_in_batch]
                 cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
                 evaluator.append_data(cost, batch, sentence_scores, token_scores_list)
-        elif count % 1 = 0:
+        elif count % 1 == 0:
             with tf.device('/gpu:1'):
                 batch = [data[i] for i in sentence_ids_in_batch]
                 cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
                 evaluator.append_data(cost, batch, sentence_scores, token_scores_list)
-        elif count % 2 = 0:
+        elif count % 2 == 0:
             with tf.device('/gpu:2'):
                 batch = [data[i] for i in sentence_ids_in_batch]
                 cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
                 evaluator.append_data(cost, batch, sentence_scores, token_scores_list)
-        elif count % 3 = 0:
+        elif count % 3 == 0:
             with tf.device('/gpu:3'):
                 batch = [data[i] for i in sentence_ids_in_batch]
                 cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
