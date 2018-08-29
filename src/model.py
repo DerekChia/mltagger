@@ -150,23 +150,24 @@ class MLTModel(object):
 
                 _word_lengths = tf.reshape(self.word_lengths, shape=[s[0]*s[1]])
 
-                # lstm_use_peepholes = False
-                char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                    use_peepholes=self.config["lstm_use_peepholes"], 
-                    state_is_tuple=True, 
-                    initializer=self.initializer,
-                    reuse=False)
-                char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                    use_peepholes=self.config["lstm_use_peepholes"], 
-                    state_is_tuple=True, 
-                    initializer=self.initializer,
-                    reuse=False)
+                with tf.device('/gpu:4'):
+                    # lstm_use_peepholes = False
+                    char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                        use_peepholes=self.config["lstm_use_peepholes"], 
+                        state_is_tuple=True, 
+                        initializer=self.initializer,
+                        reuse=False)
+                    char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                        use_peepholes=self.config["lstm_use_peepholes"], 
+                        state_is_tuple=True, 
+                        initializer=self.initializer,
+                        reuse=False)
 
-                char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
-                    char_lstm_cell_fw, char_lstm_cell_bw, 
-                    char_input_tensor, sequence_length=_word_lengths, 
-                    dtype=tf.float32, time_major=False)
-                _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
+                    char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
+                        char_lstm_cell_fw, char_lstm_cell_bw, 
+                        char_input_tensor, sequence_length=_word_lengths, 
+                        dtype=tf.float32, time_major=False)
+                    _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
 
                 # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
                 # char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
@@ -493,8 +494,7 @@ class MLTModel(object):
 
     def process_batch(self, batch, is_training, learningrate):
         feed_dict = self.create_input_dictionary_for_batch(batch, is_training, learningrate)
-        with tf.device('/gpu:4'):
-            cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
+        cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
         return cost, sentence_scores, token_scores
 
 
