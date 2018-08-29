@@ -162,12 +162,12 @@ class MLTModel(object):
                     state_is_tuple=True, 
                     initializer=self.initializer,
                     reuse=False)
-                with tf.device('/gpu:4'):
-                    char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
-                        char_lstm_cell_fw, char_lstm_cell_bw, 
-                        char_input_tensor, sequence_length=_word_lengths, 
-                        dtype=tf.float32, time_major=False)
-                    _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
+                # with tf.device('/gpu:4'):
+                char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
+                    char_lstm_cell_fw, char_lstm_cell_bw, 
+                    char_input_tensor, sequence_length=_word_lengths, 
+                    dtype=tf.float32, time_major=False)
+                _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
 
                 # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
                 # char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
