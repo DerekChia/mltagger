@@ -1,7 +1,7 @@
 import time
 import collections
 import numpy
-from tensorflow import tf
+import tensorflow as tf
 
 class MLTEvaluator(object):
     def __init__(self, config):
