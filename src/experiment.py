@@ -130,8 +130,9 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
     if is_training == True:
         random.shuffle(batches_of_sentence_ids)
 
+    print('############### Epoch', epoch + 1, '###############')
     for count, sentence_ids_in_batch in enumerate(batches_of_sentence_ids):
-        print('############### Epoch', epoch + 1,'Batch', count + 1, 'of', len(batches_of_sentence_ids) , '###############')
+        # print('############### Epoch', epoch + 1,'Batch', count + 1, 'of', len(batches_of_sentence_ids) , '###############')
         # if count % 5 == 0:
         #     with tf.device('/gpu:0'):
         #         batch = [data[i] for i in sentence_ids_in_batch]
