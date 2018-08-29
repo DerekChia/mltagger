@@ -204,6 +204,8 @@ def run_experiment(config_path):
     if config["preload_vectors"] != None:
         model.preload_word_embeddings(config["preload_vectors"])
 
+    writer = tf.summary.FileWriter("output", model.session.graph)
+
     print("parameter_count: " + str(model.get_parameter_count()))
     print("parameter_count_without_word_embeddings: " + str(model.get_parameter_count_without_word_embeddings()))
 
@@ -247,8 +249,6 @@ def run_experiment(config_path):
 
             while config["garbage_collection"] == True and gc.collect() > 0:
                 pass
-
-            writer = tf.summary.FileWriter("output", model.session.graph)
 
         if data_dev != None and best_epoch >= 0:
             # loading the best model so far
