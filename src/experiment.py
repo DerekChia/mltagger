@@ -153,10 +153,10 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
         #         cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
         #         evaluator.append_data(cost, batch, sentence_scores, token_scores_list)
         # else:
-        with tf.device('/gpu:4'):
-            batch = [data[i] for i in sentence_ids_in_batch]
-            cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
-            evaluator.append_data(cost, batch, sentence_scores, token_scores_list)
+        # with tf.device('/gpu:4'):
+        batch = [data[i] for i in sentence_ids_in_batch]
+        cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
+        evaluator.append_data(cost, batch, sentence_scores, token_scores_list)
 
     # for count, sentence_ids_in_batch in enumerate(batches_of_sentence_ids):
     #     print('############### Epoch', epoch + 1,'Batch', count + 1, 'of', len(batches_of_sentence_ids) , '###############')
@@ -228,8 +228,8 @@ def run_experiment(config_path):
             results_train = process_sentences(epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
 
             # Print after each epoch
-            for key in results:
-                print(key + ": " + str(results[key]))
+            for key in results_train:
+                print(key + ": " + str(results_train[key]))
 
             if data_dev != None:
                 results_dev = process_sentences(epoch, data_dev, model, is_training=False, learningrate=0.0, config=config, name="dev")

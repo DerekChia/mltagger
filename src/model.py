@@ -493,7 +493,8 @@ class MLTModel(object):
 
     def process_batch(self, batch, is_training, learningrate):
         feed_dict = self.create_input_dictionary_for_batch(batch, is_training, learningrate)
-        cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
+        with tf.device('/gpu:4'):
+            cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
         return cost, sentence_scores, token_scores
 
 
