@@ -1,6 +1,7 @@
 import time
 import collections
 import numpy
+from tensorflow import tf
 
 class MLTEvaluator(object):
     def __init__(self, config):
@@ -177,6 +178,7 @@ class MLTEvaluator(object):
 
         results[name + "_time"] = float(time.time()) - float(self.start_time)
 
+        tf.summary.merge_all()
         return results
 
 

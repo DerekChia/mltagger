@@ -247,8 +247,7 @@ def run_experiment(config_path):
 
             while config["garbage_collection"] == True and gc.collect() > 0:
                 pass
-            
-            tf.summary.merge_all()
+
             writer = tf.summary.FileWriter("output", model.session.graph)
 
         if data_dev != None and best_epoch >= 0:
