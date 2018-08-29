@@ -125,7 +125,7 @@ class MLTModel(object):
         # char_embedding_size = 100, char_recurrent_size = 100
         if self.config["char_embedding_size"] > 0 and self.config["char_recurrent_size"] > 0:
             with tf.variable_scope("chars"), tf.control_dependencies([tf.assert_equal(tf.shape(self.char_ids)[2], tf.reduce_max(self.word_lengths), message="Char dimensions don't match")]):
-                with tf.device('/gpu:4'):
+                with tf.device('/gpu:1'):
                     self.char_embeddings = tf.get_variable("char_embeddings", 
                         shape=[len(self.char2id), self.config["char_embedding_size"]], 
                         initializer=self.initializer, 
