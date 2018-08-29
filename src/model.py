@@ -125,96 +125,97 @@ class MLTModel(object):
         # char_embedding_size = 100, char_recurrent_size = 100
         if self.config["char_embedding_size"] > 0 and self.config["char_recurrent_size"] > 0:
             with tf.variable_scope("chars"), tf.control_dependencies([tf.assert_equal(tf.shape(self.char_ids)[2], tf.reduce_max(self.word_lengths), message="Char dimensions don't match")]):
-                self.char_embeddings = tf.get_variable("char_embeddings", 
-                    shape=[len(self.char2id), self.config["char_embedding_size"]], 
-                    initializer=self.initializer, 
-                    trainable=True)
+                with tf.device('/gpu:4'):
+                    self.char_embeddings = tf.get_variable("char_embeddings", 
+                        shape=[len(self.char2id), self.config["char_embedding_size"]], 
+                        initializer=self.initializer, 
+                        trainable=True)
 
-                # self.char_embeddings [97 100][[-0.0284440666 -0.0544790775 -0.0190391093 0.170494288 0.133321077]...]
-                # self.char_embeddings = tf.Print(self.char_embeddings, [tf.shape(self.char_embeddings), self.char_embeddings], 'self.char_embeddings ', summarize=5)
+                    # self.char_embeddings [97 100][[-0.0284440666 -0.0544790775 -0.0190391093 0.170494288 0.133321077]...]
+                    # self.char_embeddings = tf.Print(self.char_embeddings, [tf.shape(self.char_embeddings), self.char_embeddings], 'self.char_embeddings ', summarize=5)
 
-                # char_input_tensor returns tensor containing embeddings of respective char_ids
-                char_input_tensor = tf.nn.embedding_lookup(self.char_embeddings, self.char_ids)
-                s = tf.shape(char_input_tensor)
+                    # char_input_tensor returns tensor containing embeddings of respective char_ids
+                    char_input_tensor = tf.nn.embedding_lookup(self.char_embeddings, self.char_ids)
+                    s = tf.shape(char_input_tensor)
 
-                # char_input_tensor [32 42 14 100][[[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]]...]
-                # char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
+                    # char_input_tensor [32 42 14 100][[[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]]...]
+                    # char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
 
-                # Reshaping char_input_tensor and word_lengths - Why?
-                # self.char_embeddings (97, 100), word_lengths (32, 42)
-                # char_input_tensor.shape (1344, 14, 100)
-                char_input_tensor = tf.reshape(char_input_tensor, shape=[s[0]*s[1], s[2], self.config["char_embedding_size"]])
+                    # Reshaping char_input_tensor and word_lengths - Why?
+                    # self.char_embeddings (97, 100), word_lengths (32, 42)
+                    # char_input_tensor.shape (1344, 14, 100)
+                    char_input_tensor = tf.reshape(char_input_tensor, shape=[s[0]*s[1], s[2], self.config["char_embedding_size"]])
 
-                # char_input_tensor [1344 14 100][[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]...]
-                # char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
+                    # char_input_tensor [1344 14 100][[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]...]
+                    # char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
 
-                _word_lengths = tf.reshape(self.word_lengths, shape=[s[0]*s[1]])
+                    _word_lengths = tf.reshape(self.word_lengths, shape=[s[0]*s[1]])
 
-                
-                # lstm_use_peepholes = False
-                char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                    use_peepholes=self.config["lstm_use_peepholes"], 
-                    state_is_tuple=True, 
-                    initializer=self.initializer,
-                    reuse=False)
-                char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                    use_peepholes=self.config["lstm_use_peepholes"], 
-                    state_is_tuple=True, 
-                    initializer=self.initializer,
-                    reuse=False)
-                # with tf.device('/gpu:4'):
-                char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
-                    char_lstm_cell_fw, char_lstm_cell_bw, 
-                    char_input_tensor, sequence_length=_word_lengths, 
-                    dtype=tf.float32, time_major=False)
-                _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
+                    
+                    # lstm_use_peepholes = False
+                    char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                        use_peepholes=self.config["lstm_use_peepholes"], 
+                        state_is_tuple=True, 
+                        initializer=self.initializer,
+                        reuse=False)
+                    char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                        use_peepholes=self.config["lstm_use_peepholes"], 
+                        state_is_tuple=True, 
+                        initializer=self.initializer,
+                        reuse=False)
+                    
+                    char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
+                        char_lstm_cell_fw, char_lstm_cell_bw, 
+                        char_input_tensor, sequence_length=_word_lengths, 
+                        dtype=tf.float32, time_major=False)
+                    _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
 
-                # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
-                # char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
+                    # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
+                    # char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
 
-                # char_output_bw [1344 100][[0.0369782448 0.0142420894 0.0041682804 0.0185243599 -0.0126576656]...]
-                # char_output_bw = tf.Print(char_output_bw, [tf.shape(char_output_bw), char_output_bw], 'char_output_bw ', summarize=5)
+                    # char_output_bw [1344 100][[0.0369782448 0.0142420894 0.0041682804 0.0185243599 -0.0126576656]...]
+                    # char_output_bw = tf.Print(char_output_bw, [tf.shape(char_output_bw), char_output_bw], 'char_output_bw ', summarize=5)
 
-                char_output_tensor = tf.concat([char_output_fw, char_output_bw], axis=-1)
+                    char_output_tensor = tf.concat([char_output_fw, char_output_bw], axis=-1)
 
-                # char_output_tensor [1344 200][[0.00968829822 0.010671746 0.00669185 0.0245511737 0.00249310443]...]
-                # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
-
-                char_output_tensor = tf.reshape(char_output_tensor, shape=[s[0], s[1], 2 * self.config["char_recurrent_size"]])
-
-                # char_output_tensor [32 42 200][[[-0.012360299 -0.00901429448 0.0371902511 -0.0109808315 0.00917478558]]...]
-                # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
-
-                char_output_vector_size = 2 * self.config["char_recurrent_size"]
-
-                # lmcost_char_gamma = 0.0
-                if self.config["lmcost_char_gamma"] > 0.0:
-                    self.loss += self.config["lmcost_char_gamma"] * self.construct_lmcost(char_output_tensor, char_output_tensor, self.sentence_lengths, self.word_ids, "separate", "lmcost_char_separate")
-                
-                # lmcost_joint_char_gamma = 0.0
-                if self.config["lmcost_joint_char_gamma"] > 0.0:
-                    self.loss += self.config["lmcost_joint_char_gamma"] * self.construct_lmcost(char_output_tensor, char_output_tensor, self.sentence_lengths, self.word_ids, "joint", "lmcost_char_joint")
-                
-                # char_hidden_layer_size =50
-                if self.config["char_hidden_layer_size"] > 0:
-                    char_output_tensor = tf.layers.dense(char_output_tensor, self.config["char_hidden_layer_size"], activation=tf.tanh, kernel_initializer=self.initializer)
-                    char_output_vector_size = self.config["char_hidden_layer_size"]
-
-                    # char_output_tensor [32 42 50][[[0.0127831129 -0.00378674385 -0.0283287913 -0.021209931 0.000687278458]]...]
+                    # char_output_tensor [1344 200][[0.00968829822 0.010671746 0.00669185 0.0245511737 0.00249310443]...]
                     # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
 
-                # char_integration_method = concat
-                if self.config["char_integration_method"] == "concat":
-                    input_tensor = tf.concat([input_tensor, char_output_tensor], axis=-1)
+                    char_output_tensor = tf.reshape(char_output_tensor, shape=[s[0], s[1], 2 * self.config["char_recurrent_size"]])
 
-                    # input_tensor [32 42 350][[[0.033284 -0.040754 -0.048377 0.12017 -0.13915]]...]
-                    # input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
+                    # char_output_tensor [32 42 200][[[-0.012360299 -0.00901429448 0.0371902511 -0.0109808315 0.00917478558]]...]
+                    # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
 
-                    input_vector_size += char_output_vector_size
-                elif self.config["char_integration_method"] == "none":
-                    input_tensor = input_tensor
-                else:
-                    raise ValueError("Unknown char integration method")
+                    char_output_vector_size = 2 * self.config["char_recurrent_size"]
+
+                    # lmcost_char_gamma = 0.0
+                    if self.config["lmcost_char_gamma"] > 0.0:
+                        self.loss += self.config["lmcost_char_gamma"] * self.construct_lmcost(char_output_tensor, char_output_tensor, self.sentence_lengths, self.word_ids, "separate", "lmcost_char_separate")
+                    
+                    # lmcost_joint_char_gamma = 0.0
+                    if self.config["lmcost_joint_char_gamma"] > 0.0:
+                        self.loss += self.config["lmcost_joint_char_gamma"] * self.construct_lmcost(char_output_tensor, char_output_tensor, self.sentence_lengths, self.word_ids, "joint", "lmcost_char_joint")
+                    
+                    # char_hidden_layer_size =50
+                    if self.config["char_hidden_layer_size"] > 0:
+                        char_output_tensor = tf.layers.dense(char_output_tensor, self.config["char_hidden_layer_size"], activation=tf.tanh, kernel_initializer=self.initializer)
+                        char_output_vector_size = self.config["char_hidden_layer_size"]
+
+                        # char_output_tensor [32 42 50][[[0.0127831129 -0.00378674385 -0.0283287913 -0.021209931 0.000687278458]]...]
+                        # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+
+                    # char_integration_method = concat
+                    if self.config["char_integration_method"] == "concat":
+                        input_tensor = tf.concat([input_tensor, char_output_tensor], axis=-1)
+
+                        # input_tensor [32 42 350][[[0.033284 -0.040754 -0.048377 0.12017 -0.13915]]...]
+                        # input_tensor = tf.Print(input_tensor, [tf.shape(input_tensor), input_tensor], 'input_tensor ', summarize=5)
+
+                        input_vector_size += char_output_vector_size
+                    elif self.config["char_integration_method"] == "none":
+                        input_tensor = input_tensor
+                    else:
+                        raise ValueError("Unknown char integration method")
 
         # This is after concatenation of word_representations
         self.word_representations = input_tensor
