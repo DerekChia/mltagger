@@ -171,8 +171,8 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
             pass
 
         results = evaluator.get_results(name)
-        for key in results:
-            print(key + ": " + str(results[key]))
+        # for key in results:
+        #     print(key + ": " + str(results[key]))
     return results
 
 
@@ -226,6 +226,10 @@ def run_experiment(config_path):
             random.shuffle(data_train)
 
             results_train = process_sentences(epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
+
+            # Print after each epoch
+            for key in results:
+                print(key + ": " + str(results[key]))
 
             if data_dev != None:
                 results_dev = process_sentences(epoch, data_dev, model, is_training=False, learningrate=0.0, config=config, name="dev")
