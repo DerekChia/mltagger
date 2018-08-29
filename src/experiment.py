@@ -172,6 +172,8 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
         results = evaluator.get_results(name)
         for key in results:
             print(key + ": " + str(results[key]))
+            tf.summary.scalar(key, results[key])
+
     return results
 
 

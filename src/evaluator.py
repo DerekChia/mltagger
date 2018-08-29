@@ -1,7 +1,6 @@
 import time
 import collections
 import numpy
-import tensorflow as tf
 
 class MLTEvaluator(object):
     def __init__(self, config):
@@ -156,7 +155,7 @@ class MLTEvaluator(object):
         results[name + '_sentence_recall'] = recall
         # F1 Score
         results[name + '_sentence_f1_score'] = f1_score
-        tf.summary.scalar('sentence_f1_score', f1_score)
+        
         # F05 Score
         results[name + '_sentence_f05_score'] = f05_score
         
