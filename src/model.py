@@ -150,24 +150,23 @@ class MLTModel(object):
 
                 _word_lengths = tf.reshape(self.word_lengths, shape=[s[0]*s[1]])
 
-                with tf.device('/gpu:4'):
-                    # lstm_use_peepholes = False
-                    char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                        use_peepholes=self.config["lstm_use_peepholes"], 
-                        state_is_tuple=True, 
-                        initializer=self.initializer,
-                        reuse=False)
-                    char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                        use_peepholes=self.config["lstm_use_peepholes"], 
-                        state_is_tuple=True, 
-                        initializer=self.initializer,
-                        reuse=False)
-                    
-                    char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
-                        char_lstm_cell_fw, char_lstm_cell_bw, 
-                        char_input_tensor, sequence_length=_word_lengths, 
-                        dtype=tf.float32, time_major=False)
-                    _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
+                # lstm_use_peepholes = False
+                char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                    use_peepholes=self.config["lstm_use_peepholes"], 
+                    state_is_tuple=True, 
+                    initializer=self.initializer,
+                    reuse=False)
+                char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                    use_peepholes=self.config["lstm_use_peepholes"], 
+                    state_is_tuple=True, 
+                    initializer=self.initializer,
+                    reuse=False)
+                
+                char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
+                    char_lstm_cell_fw, char_lstm_cell_bw, 
+                    char_input_tensor, sequence_length=_word_lengths, 
+                    dtype=tf.float32, time_major=False)
+                _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
 
                 # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
                 # char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
@@ -500,7 +499,7 @@ class MLTModel(object):
 
     def initialize_session(self):
         tf.set_random_seed(self.config["random_seed"])
-        session_config = tf.ConfigProto(log_device_placement=True)
+        session_config = tf.ConfigProto(log_device_placement=True, allow_soft_placement=True)
         session_config.gpu_options.allow_growth = self.config["tf_allow_growth"]
         session_config.gpu_options.per_process_gpu_memory_fraction = self.config["tf_per_process_gpu_memory_fraction"]
         self.session = tf.Session(config=session_config)
