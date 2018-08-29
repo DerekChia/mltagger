@@ -214,7 +214,7 @@ def run_experiment(config_path):
         learningrate = config["learningrate"]
 
         # sess = tf.Session()
-
+        writer = tf.summary.FileWriter("output", model.session.graph)
         for epoch in range(config["epochs"]):
             print("EPOCH: " + str(epoch))
 
@@ -265,7 +265,7 @@ def run_experiment(config_path):
             data_test = read_input_files(path_test)
             results_test = process_sentences(epoch, data_test, model, is_training=False, learningrate=0.0, config=config, name="test"+str(i))
             i += 1
-
+    writer.close()
 if __name__ == "__main__":
     run_experiment(sys.argv[1])
 
