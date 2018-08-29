@@ -197,13 +197,12 @@ def run_experiment(config_path):
         for path_test in config["path_test"].strip().split(":"):
             data_test += read_input_files(path_test)
     
-    with tf.device('/gpu:1'):
-        model = MLTModel(config)
-        model.build_vocabs(data_train, data_dev, data_test, config["preload_vectors"])
-        model.construct_network()
-        model.initialize_session()
-        if config["preload_vectors"] != None:
-            model.preload_word_embeddings(config["preload_vectors"])
+    model = MLTModel(config)
+    model.build_vocabs(data_train, data_dev, data_test, config["preload_vectors"])
+    model.construct_network()
+    model.initialize_session()
+    if config["preload_vectors"] != None:
+        model.preload_word_embeddings(config["preload_vectors"])
 
     print("parameter_count: " + str(model.get_parameter_count()))
     print("parameter_count_without_word_embeddings: " + str(model.get_parameter_count_without_word_embeddings()))
