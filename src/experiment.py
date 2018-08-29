@@ -173,7 +173,6 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
         for key in results:
             print(key + ": " + str(results[key]))
             tf.summary.scalar(key, results[key])
-
     return results
 
 
@@ -216,7 +215,6 @@ def run_experiment(config_path):
         learningrate = config["learningrate"]
 
         # sess = tf.Session()
-        writer = tf.summary.FileWriter("output", model.session.graph)
         for epoch in range(config["epochs"]):
             print("EPOCH: " + str(epoch))
 
@@ -249,6 +247,9 @@ def run_experiment(config_path):
 
             while config["garbage_collection"] == True and gc.collect() > 0:
                 pass
+            
+            tf.summary.merge_all()
+            writer = tf.summary.FileWriter("output", model.session.graph)
 
         if data_dev != None and best_epoch >= 0:
             # loading the best model so far
