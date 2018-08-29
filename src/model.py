@@ -33,6 +33,7 @@ class MLTModel(object):
         char_counter = collections.Counter()
         for sentence in data_source:
             for word in sentence:
+                # print(word[0])
                 char_counter.update(word[0])
         self.char2id = collections.OrderedDict([(self.CUNK, 0)])
         for char, count in char_counter.most_common():
@@ -56,6 +57,8 @@ class MLTModel(object):
                     self.word2id[word] = len(self.word2id)
 
         self.singletons = set([word for word in word_counter if word_counter[word] == 1])
+
+        print(self.singletons)
 
         if embedding_path != None and self.config["vocab_only_embedded"] == True:
             self.embedding_vocab = set([self.UNK])
