@@ -199,7 +199,7 @@ def run_experiment(config_path):
     
     model = MLTModel(config)
     model.build_vocabs(data_train, data_dev, data_test, config["preload_vectors"])
-    with tf.device('/gpu:4'):
+    with tf.device('/GPU:4'):
         model.construct_network()
     model.initialize_session()
     if config["preload_vectors"] != None:
