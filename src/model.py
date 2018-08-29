@@ -161,7 +161,7 @@ class MLTModel(object):
                     state_is_tuple=True, 
                     initializer=self.initializer,
                     reuse=False)
-                
+
                 char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
                     char_lstm_cell_fw, char_lstm_cell_bw, 
                     char_input_tensor, sequence_length=_word_lengths, 
