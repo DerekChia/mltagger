@@ -150,19 +150,19 @@ class MLTModel(object):
 
                 _word_lengths = tf.reshape(self.word_lengths, shape=[s[0]*s[1]])
 
+                
+                # lstm_use_peepholes = False
+                char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                    use_peepholes=self.config["lstm_use_peepholes"], 
+                    state_is_tuple=True, 
+                    initializer=self.initializer,
+                    reuse=False)
+                char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                    use_peepholes=self.config["lstm_use_peepholes"], 
+                    state_is_tuple=True, 
+                    initializer=self.initializer,
+                    reuse=False)
                 with tf.device('/gpu:4'):
-                    # lstm_use_peepholes = False
-                    char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                        use_peepholes=self.config["lstm_use_peepholes"], 
-                        state_is_tuple=True, 
-                        initializer=self.initializer,
-                        reuse=False)
-                    char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                        use_peepholes=self.config["lstm_use_peepholes"], 
-                        state_is_tuple=True, 
-                        initializer=self.initializer,
-                        reuse=False)
-
                     char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
                         char_lstm_cell_fw, char_lstm_cell_bw, 
                         char_input_tensor, sequence_length=_word_lengths, 
