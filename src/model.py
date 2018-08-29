@@ -150,42 +150,41 @@ class MLTModel(object):
 
                 _word_lengths = tf.reshape(self.word_lengths, shape=[s[0]*s[1]])
 
-                with tf.device('/gpu:1'):
-                    # lstm_use_peepholes = False
-                    char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                        use_peepholes=self.config["lstm_use_peepholes"], 
-                        state_is_tuple=True, 
-                        initializer=self.initializer,
-                        reuse=False)
-                    char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
-                        use_peepholes=self.config["lstm_use_peepholes"], 
-                        state_is_tuple=True, 
-                        initializer=self.initializer,
-                        reuse=False)
-                    
-                    char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
-                        char_lstm_cell_fw, char_lstm_cell_bw, 
-                        char_input_tensor, sequence_length=_word_lengths, 
-                        dtype=tf.float32, time_major=False)
-                    _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
+                # lstm_use_peepholes = False
+                char_lstm_cell_fw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                    use_peepholes=self.config["lstm_use_peepholes"], 
+                    state_is_tuple=True, 
+                    initializer=self.initializer,
+                    reuse=False)
+                char_lstm_cell_bw = tf.nn.rnn_cell.LSTMCell(self.config["char_recurrent_size"], 
+                    use_peepholes=self.config["lstm_use_peepholes"], 
+                    state_is_tuple=True, 
+                    initializer=self.initializer,
+                    reuse=False)
+                
+                char_lstm_outputs = tf.nn.bidirectional_dynamic_rnn(
+                    char_lstm_cell_fw, char_lstm_cell_bw, 
+                    char_input_tensor, sequence_length=_word_lengths, 
+                    dtype=tf.float32, time_major=False)
+                _, ((_, char_output_fw), (_, char_output_bw)) = char_lstm_outputs
 
-                    # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
-                    # char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
+                # char_output_fw [1344 100][[-0.0202908032 0.0152226407 0.0122073945 -0.000989505905 -0.0187146086]...]
+                # char_output_fw = tf.Print(char_output_fw, [tf.shape(char_output_fw), char_output_fw], 'char_output_fw ', summarize=5)
 
-                    # char_output_bw [1344 100][[0.0369782448 0.0142420894 0.0041682804 0.0185243599 -0.0126576656]...]
-                    # char_output_bw = tf.Print(char_output_bw, [tf.shape(char_output_bw), char_output_bw], 'char_output_bw ', summarize=5)
+                # char_output_bw [1344 100][[0.0369782448 0.0142420894 0.0041682804 0.0185243599 -0.0126576656]...]
+                # char_output_bw = tf.Print(char_output_bw, [tf.shape(char_output_bw), char_output_bw], 'char_output_bw ', summarize=5)
 
-                    char_output_tensor = tf.concat([char_output_fw, char_output_bw], axis=-1)
+                char_output_tensor = tf.concat([char_output_fw, char_output_bw], axis=-1)
 
-                    # char_output_tensor [1344 200][[0.00968829822 0.010671746 0.00669185 0.0245511737 0.00249310443]...]
-                    # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+                # char_output_tensor [1344 200][[0.00968829822 0.010671746 0.00669185 0.0245511737 0.00249310443]...]
+                # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
 
-                    char_output_tensor = tf.reshape(char_output_tensor, shape=[s[0], s[1], 2 * self.config["char_recurrent_size"]])
+                char_output_tensor = tf.reshape(char_output_tensor, shape=[s[0], s[1], 2 * self.config["char_recurrent_size"]])
 
-                    # char_output_tensor [32 42 200][[[-0.012360299 -0.00901429448 0.0371902511 -0.0109808315 0.00917478558]]...]
-                    # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
+                # char_output_tensor [32 42 200][[[-0.012360299 -0.00901429448 0.0371902511 -0.0109808315 0.00917478558]]...]
+                # char_output_tensor = tf.Print(char_output_tensor, [tf.shape(char_output_tensor), char_output_tensor], 'char_output_tensor ', summarize=5)
 
-                    char_output_vector_size = 2 * self.config["char_recurrent_size"]
+                char_output_vector_size = 2 * self.config["char_recurrent_size"]
 
                 # lmcost_char_gamma = 0.0
                 if self.config["lmcost_char_gamma"] > 0.0:

@@ -199,7 +199,8 @@ def run_experiment(config_path):
     
     model = MLTModel(config)
     model.build_vocabs(data_train, data_dev, data_test, config["preload_vectors"])
-    model.construct_network()
+    with tf.device('/gpu:4'):
+        model.construct_network()
     model.initialize_session()
     if config["preload_vectors"] != None:
         model.preload_word_embeddings(config["preload_vectors"])
