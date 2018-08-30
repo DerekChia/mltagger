@@ -173,9 +173,7 @@ def process_sentences(writer, merged, epoch, data, model, is_training, learningr
     for key in results:
         print(key + ": " + str(results[key]))
 
-    tf.summary.scalar('token_scores', evaluator.token_f)
-    tf.summary.scalar('sentence_scores', evaluator.sentence_f1_score)
-
+    tf.summary.scalar('sentence_f1_score', evaluator.sentence_f1_score)
     writer.add_summary(summary, epoch)
 
     return results
