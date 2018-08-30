@@ -172,10 +172,9 @@ def process_sentences(writer, merged, epoch, data, model, is_training, learningr
     results = evaluator.get_results(name)
     for key in results:
         print(key + ": " + str(results[key]))
-        tf.summary.scalar(key, results[key])
 
     writer.add_summary(summary, epoch)
-    
+
     return results
 
 
@@ -211,6 +210,9 @@ def run_experiment(config_path):
     print("parameter_count_without_word_embeddings: " + str(model.get_parameter_count_without_word_embeddings()))
 
     tf.summary.scalar('loss', model.loss)
+    tf.summary.scalar('token_scores', model.token_scores)
+    tf.summary.scalar('sentence_scores', model.sentence_scores)
+    
     merged = tf.summary.merge_all()
     writer = tf.summary.FileWriter("./output", model.session.graph)
 
