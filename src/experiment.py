@@ -121,7 +121,7 @@ def create_batches_of_sentence_ids(sentences, batch_equal_size, max_batch_size):
             batches_of_sentence_ids.append(current_batch)
     return batches_of_sentence_ids
 
-def process_sentences(epoch, data, model, is_training, learningrate, config, name):
+def process_sentences(writer, merged, epoch, data, model, is_training, learningrate, config, name):
     """
     Process all the sentences with the labeler, return evaluation metrics.
     """
@@ -154,9 +154,9 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
         #         evaluator.append_data(cost, batch, sentence_scores, token_scores_list)
         # else:
         batch = [data[i] for i in sentence_ids_in_batch]
-        cost, sentence_scores, token_scores_list = model.process_batch(batch, is_training, learningrate)
+        summary, cost, sentence_scores, token_scores_list = model.process_batch(merged, batch, is_training, learningrate)
         evaluator.append_data(cost, batch, sentence_scores, token_scores_list)
-
+        
     # for count, sentence_ids_in_batch in enumerate(batches_of_sentence_ids):
     #     print('############### Epoch', epoch + 1,'Batch', count + 1, 'of', len(batches_of_sentence_ids) , '###############')
 
@@ -169,10 +169,13 @@ def process_sentences(epoch, data, model, is_training, learningrate, config, nam
         while config["garbage_collection"] == True and gc.collect() > 0:
             pass
 
-        results = evaluator.get_results(name)
-        for key in results:
-            print(key + ": " + str(results[key]))
-            tf.summary.scalar(key, results[key])
+    results = evaluator.get_results(name)
+    for key in results:
+        print(key + ": " + str(results[key]))
+        tf.summary.scalar(key, results[key])
+
+    writer.add_summary(summary, epoch)
+    
     return results
 
 
@@ -204,10 +207,12 @@ def run_experiment(config_path):
     if config["preload_vectors"] != None:
         model.preload_word_embeddings(config["preload_vectors"])
 
-    writer = tf.summary.FileWriter("output", model.session.graph)
-
     print("parameter_count: " + str(model.get_parameter_count()))
     print("parameter_count_without_word_embeddings: " + str(model.get_parameter_count_without_word_embeddings()))
+
+    tf.summary.scalar('loss', model.loss)
+    merged = tf.summary.merge_all()
+    writer = tf.summary.FileWriter("./output", model.session.graph)
 
     if data_train != None:
         model_selector = config["model_selector"].split(":")[0]
@@ -217,6 +222,7 @@ def run_experiment(config_path):
         learningrate = config["learningrate"]
 
         # sess = tf.Session()
+
         for epoch in range(config["epochs"]):
             print("EPOCH: " + str(epoch))
 
@@ -226,10 +232,12 @@ def run_experiment(config_path):
             
             random.shuffle(data_train)
 
-            results_train = process_sentences(epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
+            results_train = process_sentences(writer, merged, epoch, data_train, model, is_training=True, learningrate=learningrate, config=config, name="train")
+            
+            # writer.add_summary(summary, epoch)
 
             if data_dev != None:
-                results_dev = process_sentences(epoch, data_dev, model, is_training=False, learningrate=0.0, config=config, name="dev")
+                results_dev = process_sentences(writer, merged, epoch, data_dev, model, is_training=False, learningrate=0.0, config=config, name="dev")
 
                 if math.isnan(results_dev["dev_cost_sum"]) or math.isinf(results_dev["dev_cost_sum"]):
                     raise ValueError("Cost is NaN or Inf. Exiting.")
@@ -267,7 +275,7 @@ def run_experiment(config_path):
             data_test = read_input_files(path_test)
             results_test = process_sentences(epoch, data_test, model, is_training=False, learningrate=0.0, config=config, name="test"+str(i))
             i += 1
-    writer.close()
+
 if __name__ == "__main__":
     run_experiment(sys.argv[1])
 
