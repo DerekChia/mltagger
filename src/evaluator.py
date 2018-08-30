@@ -140,9 +140,9 @@ class MLTEvaluator(object):
         precision = (float(self.sentence_correct) / float(self.sentence_predicted)) if (self.sentence_predicted > 0) else 0.0
         recall = (float(self.sentence_correct) / float(self.sentence_predicted) if (self.sentence_predicted > 0) else 0.0)
         # https://en.wikipedia.org/wiki/F1_score
-        self.f1_score = (2.0 * precision * recall / (precision + recall)) if (precision + recall > 0.0) else 0.0
+        self.sentence_f1_score = (2.0 * precision * recall / (precision + recall)) if (precision + recall > 0.0) else 0.0
         # f0.5 score weighs recall lower than precision (by attenuating the influence of false negatives)
-        self.f05_score = ((1.0 + 0.5 * 0.5) * (precision * recall) / (0.5 * 0.5 * precision + recall)) if (precision + recall > 0.0) else 0.0
+        self.sentence_f05_score = ((1.0 + 0.5 * 0.5) * (precision * recall) / (0.5 * 0.5 * precision + recall)) if (precision + recall > 0.0) else 0.0
 
         results = collections.OrderedDict()
         # Average cost of each word generated in this Epoch
@@ -170,7 +170,7 @@ class MLTEvaluator(object):
             mean_ap = self.token_ap_sum[k] / self.sentence_total # only calculating MAP over sentences that have any positive tokens
             p = (float(self.token_correct[k]) / float(self.token_predicted[k])) if (self.token_predicted[k] > 0.0) else 0.0
             r = (float(self.token_correct[k]) / float(self.token_total[k])) if (self.token_total[k] > 0.0) else 0.0
-            token_f = (2.0 * p * r / (p + r)) if (p+r > 0.0) else 0.0
+            self.token_f = (2.0 * p * r / (p + r)) if (p+r > 0.0) else 0.0
             f05 = ((1.0 + 0.5*0.5) * p * r / ((0.5*0.5 * p) + r)) if (((0.5*0.5 * p) + r) > 0.0) else 0.0
 
             results[name + "_token_"+str(k)+"_map"] = mean_ap
