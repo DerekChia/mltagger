@@ -18,12 +18,8 @@ class MLTEvaluator(object):
         self.token_correct = []
         self.token_total = []
 
-        self.sentence_f1_score = 0.0
-        self.sentence_f05_score = 0.0
-
-        self.token_f = 0.0
-
         self.start_time = time.time()
+
 
     def calculate_ap(self, true_labels, predicted_scores):
         assert(len(true_labels) == len(predicted_scores))
@@ -140,9 +136,9 @@ class MLTEvaluator(object):
         precision = (float(self.sentence_correct) / float(self.sentence_predicted)) if (self.sentence_predicted > 0) else 0.0
         recall = (float(self.sentence_correct) / float(self.sentence_predicted) if (self.sentence_predicted > 0) else 0.0)
         # https://en.wikipedia.org/wiki/F1_score
-        self.sentence_f1_score = (2.0 * precision * recall / (precision + recall)) if (precision + recall > 0.0) else 0.0
+        f1_score = (2.0 * precision * recall / (precision + recall)) if (precision + recall > 0.0) else 0.0
         # f0.5 score weighs recall lower than precision (by attenuating the influence of false negatives)
-        self.sentence_f05_score = ((1.0 + 0.5 * 0.5) * (precision * recall) / (0.5 * 0.5 * precision + recall)) if (precision + recall > 0.0) else 0.0
+        f05_score = ((1.0 + 0.5 * 0.5) * (precision * recall) / (0.5 * 0.5 * precision + recall)) if (precision + recall > 0.0) else 0.0
 
         results = collections.OrderedDict()
         # Average cost of each word generated in this Epoch
@@ -159,9 +155,9 @@ class MLTEvaluator(object):
         # Recall
         results[name + '_sentence_recall'] = recall
         # F1 Score
-        results[name + '_sentence_f1_score'] = self.sentence_f1_score
+        results[name + '_sentence_f1_score'] = f1_score
         # F05 Score
-        results[name + '_sentence_f05_score'] = self.sentence_f05_score
+        results[name + '_sentence_f05_score'] = f05_score
         
         results[name + "_sentence_correct_binary"] = self.sentence_correct_binary
         results[name + "_sentence_accuracy_binary"] = self.sentence_correct_binary / float(self.sentence_count)
@@ -170,15 +166,19 @@ class MLTEvaluator(object):
             mean_ap = self.token_ap_sum[k] / self.sentence_total # only calculating MAP over sentences that have any positive tokens
             p = (float(self.token_correct[k]) / float(self.token_predicted[k])) if (self.token_predicted[k] > 0.0) else 0.0
             r = (float(self.token_correct[k]) / float(self.token_total[k])) if (self.token_total[k] > 0.0) else 0.0
-            self.token_f = (2.0 * p * r / (p + r)) if (p+r > 0.0) else 0.0
+            f = (2.0 * p * r / (p + r)) if (p+r > 0.0) else 0.0
             f05 = ((1.0 + 0.5*0.5) * p * r / ((0.5*0.5 * p) + r)) if (((0.5*0.5 * p) + r) > 0.0) else 0.0
 
-            results[name + "_token_"+str(k)+"_map"] = mean_ap
-            results[name + "_token_"+str(k)+"_p"] = p
-            results[name + "_token_"+str(k)+"_r"] = r
-            results[name + "_token_"+str(k)+"_f"] = self.token_f
-            results[name + "_token_"+str(k)+"_f05"] = f05
+            results[name + "_tok_"+str(k)+"_map"] = mean_ap
+            results[name + "_tok_"+str(k)+"_p"] = p
+            results[name + "_tok_"+str(k)+"_r"] = r
+            results[name + "_tok_"+str(k)+"_f"] = f
+            results[name + "_tok_"+str(k)+"_f05"] = f05
 
         results[name + "_time"] = float(time.time()) - float(self.start_time)
 
         return results
+
+
+
+

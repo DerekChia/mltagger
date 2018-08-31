@@ -302,6 +302,7 @@ class MLTModel(object):
                 else:
                     raise ValueError("Unknown activation for attention: " + str(self.config["attention_activation"]))
 
+                # word_objective_weight = 0.0
                 word_objective_loss = tf.square(attention_weights - self.word_labels)
                 word_objective_loss = tf.where(tf.sequence_mask(self.sentence_lengths), word_objective_loss, tf.zeros_like(word_objective_loss))
                 self.loss += self.config["word_objective_weight"] * tf.reduce_sum(self.word_objective_weights * word_objective_loss)
@@ -328,10 +329,15 @@ class MLTModel(object):
 
         self.sentence_scores = tf.reshape(self.sentence_scores, shape=[tf.shape(processed_tensor)[0]])
 
+
         # self.sentence_scores (after reshape) [32][0.515106499 0.51553309 0.406303078 0.582218766 0.401411533...]
         # self.sentence_scores = tf.Print(self.sentence_scores, [tf.shape(self.sentence_scores), self.sentence_scores], 'self.sentence_scores (after reshape) ', summarize=5)
 
         self.loss += self.config["sentence_objective_weight"] * tf.reduce_sum(self.sentence_objective_weights * tf.square(self.sentence_scores - self.sentence_labels))
+
+        # self.loss = tf.Print(self.loss, [tf.shape(self.loss), self.loss], 'self.loss - sentence_objective_weight', summarize=5)
+        # self.loss[][6.61398029]
+        tf.summary.scalar('loss_sentence_objective_weight', self.loss)
 
         # attention_objective_weight = 0.01
         if self.config["attention_objective_weight"] > 0.0:
@@ -353,14 +359,22 @@ class MLTModel(object):
                                 self.attention_weights_unnormalised, 
                                 tf.zeros_like(self.attention_weights_unnormalised) + 1e6), 
                             axis=-1) - 0.0)))
+        
+        # self.loss = tf.Print(self.loss, [tf.shape(self.loss), self.loss], 'self.loss - attention_objective_weight', summarize=5)
+        # self.loss[][5.22998095]
+        tf.summary.scalar('loss_attention_objective_weight', self.loss)
 
         self.token_scores = [tf.where(tf.sequence_mask(self.sentence_lengths), self.attention_weights_unnormalised, tf.zeros_like(self.attention_weights_unnormalised) - 1e6)]
 
+        # lmcost_lstm_gamma = 0.0
         if self.config["lmcost_lstm_gamma"] > 0.0:
             self.loss += self.config["lmcost_lstm_gamma"] * self.construct_lmcost(lstm_outputs_fw, lstm_outputs_bw, self.sentence_lengths, self.word_ids, "separate", "lmcost_lstm_separate")
+
+        # lmcost_joint_lstm_gamma = 0.0
         if self.config["lmcost_joint_lstm_gamma"] > 0.0:
             self.loss += self.config["lmcost_joint_lstm_gamma"] * self.construct_lmcost(lstm_outputs_fw, lstm_outputs_bw, self.sentence_lengths, self.word_ids, "joint", "lmcost_lstm_joint")
 
+        # opt_strategy = adadelta, clip = 0.0
         self.train_op = self.construct_optimizer(self.config["opt_strategy"], self.loss, self.learningrate, self.config["clip"])
 
     def construct_lmcost(self, input_tensor_fw, input_tensor_bw, sentence_lengths, target_ids, lmcost_type, name):
@@ -492,11 +506,16 @@ class MLTModel(object):
         input_dictionary = {self.word_ids: word_ids, self.char_ids: char_ids, self.sentence_lengths: sentence_lengths, self.word_lengths: word_lengths, self.word_labels: word_labels, self.word_objective_weights: word_objective_weights, self.sentence_labels: sentence_labels, self.sentence_objective_weights: sentence_objective_weights, self.learningrate: learningrate, self.is_training: is_training}
         return input_dictionary
 
-    def process_batch(self, merged, batch, is_training, learningrate):
+    def process_batch(self, merged_summary, batch, is_training, learningrate):
         feed_dict = self.create_input_dictionary_for_batch(batch, is_training, learningrate)
-        summary, cost, sentence_scores, token_scores = self.session.run([merged, self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:4]
+        summary, cost, sentence_scores, token_scores = self.session.run([merged_summary, self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:4]
+
+        # cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
+
+        # summary = self.session.run(merged_summary, feed_dict=feed_dict)
         
         return summary, cost, sentence_scores, token_scores
+
 
     def initialize_session(self):
         tf.set_random_seed(self.config["random_seed"])
@@ -507,6 +526,7 @@ class MLTModel(object):
         self.session = tf.Session(config=session_config)
         self.session.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver(max_to_keep=1)
+
 
     def get_parameter_count(self):
         total_parameters = 0
