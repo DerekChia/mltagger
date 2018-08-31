@@ -333,6 +333,7 @@ class MLTModel(object):
         # self.sentence_scores (after reshape) [32][0.515106499 0.51553309 0.406303078 0.582218766 0.401411533...]
         # self.sentence_scores = tf.Print(self.sentence_scores, [tf.shape(self.sentence_scores), self.sentence_scores], 'self.sentence_scores (after reshape) ', summarize=5)
 
+        # sentence_objective_weight = 1.0
         self.loss += self.config["sentence_objective_weight"] * tf.reduce_sum(self.sentence_objective_weights * tf.square(self.sentence_scores - self.sentence_labels))
 
         # self.loss = tf.Print(self.loss, [tf.shape(self.loss), self.loss], 'self.loss - sentence_objective_weight', summarize=5)
@@ -511,8 +512,6 @@ class MLTModel(object):
         summary, cost, sentence_scores, token_scores = self.session.run([merged_summary, self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:4]
 
         # cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
-
-        # summary = self.session.run(merged_summary, feed_dict=feed_dict)
         
         return summary, cost, sentence_scores, token_scores
 
