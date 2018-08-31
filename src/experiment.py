@@ -130,6 +130,7 @@ def process_sentences(writer, merged_summary, epoch, data, model, is_training, l
     if is_training == True:
         random.shuffle(batches_of_sentence_ids)
 
+    # Each batch has 32 sentences
     for count, sentence_ids_in_batch in enumerate(batches_of_sentence_ids):
         print('############### Epoch', epoch + 1,'Batch', count + 1, 'of', len(batches_of_sentence_ids) , '###############')
         batch = [data[i] for i in sentence_ids_in_batch]

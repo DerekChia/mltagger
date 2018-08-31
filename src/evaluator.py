@@ -54,7 +54,7 @@ class MLTEvaluator(object):
 
     def append_data(self, cost, batch, sentence_scores, token_scores_list):
         assert(len(self.token_ap_sum) == 0 or len(self.token_ap_sum) == len(token_scores_list))
-        # Summing up all costs across batches
+        # Summing up all costs across sentences in a batch
         self.cost_sum += cost
 
         # Added
@@ -141,9 +141,9 @@ class MLTEvaluator(object):
         f05_score = ((1.0 + 0.5 * 0.5) * (precision * recall) / (0.5 * 0.5 * precision + recall)) if (precision + recall > 0.0) else 0.0
 
         results = collections.OrderedDict()
-        # Average cost of each word generated in this Epoch
+        # Average cost of each sentence generated in this batch
         results[name + '_cost_avg'] = self.cost_sum / float(self.sentence_count)
-        # Total cost generated in this Epoch by summing all loss across each word
+        # Total cost generated in this batch by summing all loss across each sentence
         results[name + '_cost_sum'] = self.cost_sum
 
         results[name + "_sentence_count"] = self.sentence_count

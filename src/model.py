@@ -515,7 +515,6 @@ class MLTModel(object):
         
         return summary, cost, sentence_scores, token_scores
 
-
     def initialize_session(self):
         tf.set_random_seed(self.config["random_seed"])
         # session_config = tf.ConfigProto(log_device_placement=True, allow_soft_placement=True)
@@ -526,7 +525,6 @@ class MLTModel(object):
         self.session.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver(max_to_keep=1)
 
-
     def get_parameter_count(self):
         total_parameters = 0
         for variable in tf.trainable_variables():
@@ -536,7 +534,6 @@ class MLTModel(object):
                 variable_parameters *= dim.value
             total_parameters += variable_parameters
         return total_parameters
-
 
     def get_parameter_count_without_word_embeddings(self):
         shape = self.word_embeddings.get_shape()

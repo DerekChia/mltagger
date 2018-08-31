@@ -195,3 +195,10 @@ Edit the values in conf/CONFIG_FILE.conf as needed:
     - Defaults to *attention*. Option of *last* or *attention*
 * **random_seed** - Random seed.
     - Defaults to *100*
+
+To-Do
+-------------------------
+- [ ] Try FB's FastText embeddings (Training in progress)
+- [ ] Change gamma in loss function (currently 0.01)
+- [ ] Reproduce on Twitter sentiment dataset
+- [ ] Add more layers (TBD)
