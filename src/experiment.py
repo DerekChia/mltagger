@@ -195,7 +195,7 @@ def run_experiment(config_path):
         for epoch in range(config["epochs"]):
             print("EPOCH: " + str(epoch))
 
-            # learningrate = sess.run(clr.cyclic_learning_rate(epoch, learning_rate=0.1, max_lr=1.0, mode='triangular2'))
+            # learningrate = sess.run(clr.cyclic_learning_rate(epoch, learning_rate=1.0, max_lr=1.2, mode='triangular2'))
             
             print("current_learningrate: " + str(learningrate))
             

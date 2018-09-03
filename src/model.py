@@ -139,7 +139,7 @@ class MLTModel(object):
                 s = tf.shape(char_input_tensor)
 
                 # char_input_tensor [32 42 14 100][[[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]]...]
-                # char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
+                char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
 
                 # Reshaping char_input_tensor and word_lengths - Why?
                 # self.char_embeddings (97, 100), word_lengths (32, 42)
@@ -340,6 +340,11 @@ class MLTModel(object):
         # self.loss[][6.61398029]
         tf.summary.scalar('loss_sentence_objective_weight', self.loss)
 
+        # tf.Print(self.sentence_labels, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=5)
+        # tf.Print(self.sentence_labels, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=5)
+        # tf.Print(self.sentence_labels, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=5)
+        # print(self.sentence_labels)
+
         # attention_objective_weight = 0.01
         if self.config["attention_objective_weight"] > 0.0:
             self.loss += self.config["attention_objective_weight"] * \
@@ -360,10 +365,10 @@ class MLTModel(object):
                                 self.attention_weights_unnormalised, 
                                 tf.zeros_like(self.attention_weights_unnormalised) + 1e6), 
                             axis=-1) - 0.0)))
-        
+        # self.sentence_labels = tf.Print(self.sentence_labels, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=5)
         # self.loss = tf.Print(self.loss, [tf.shape(self.loss), self.loss], 'self.loss - attention_objective_weight', summarize=5)
         # self.loss[][5.22998095]
-        tf.summary.scalar('loss_attention_objective_weight', self.loss)
+        tf.summary.scalar('loss_sentence_objective_weight', self.loss)
 
         self.token_scores = [tf.where(tf.sequence_mask(self.sentence_lengths), self.attention_weights_unnormalised, tf.zeros_like(self.attention_weights_unnormalised) - 1e6)]
 
@@ -514,6 +519,12 @@ class MLTModel(object):
         # cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
         
         return summary, cost, sentence_scores, token_scores
+
+    def process_batch_inference(self, batch, is_training, learningrate):
+        feed_dict = self.create_input_dictionary_for_batch(batch, is_training, learningrate)
+        cost, sentence_scores, token_scores = self.session.run([self.loss, self.sentence_scores, self.token_scores] + ([self.train_op] if is_training == True else []), feed_dict=feed_dict)[:3]
+        
+        return cost, sentence_scores, token_scores
 
     def initialize_session(self):
         tf.set_random_seed(self.config["random_seed"])

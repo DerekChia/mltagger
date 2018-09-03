@@ -1,7 +1,7 @@
 import sys
 
 
-from model_without_print import MLTModel
+from model import MLTModel
 from evaluator import MLTEvaluator
 from experiment import read_input_files
 
@@ -12,12 +12,10 @@ if __name__ == "__main__":
     batch_size = 32
     # Evaluator
     evaluator = MLTEvaluator(model.config)
-
-    model.test()
     
     for i in range(0, len(data), batch_size):
         batch = data[i:i+batch_size]
-        cost, sentence_scores, token_scores_list = model.process_batch(batch, False, 0.0)
+        cost, sentence_scores, token_scores_list = model.process_batch_inference(batch, False, 0.0)
 
         for j in range(len(batch)):
             for k in range(len(batch[j])):
