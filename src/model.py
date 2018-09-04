@@ -114,7 +114,7 @@ class MLTModel(object):
 
         # word_embeddings [13470 300][[0.0164626278 -0.0187288448 -0.0165187102 -0.00846466795 -0.000238586217]...]
         # self.word_embeddings = tf.Print(self.word_embeddings, [tf.shape(self.word_embeddings), self.word_embeddings], 'word_embeddings ', summarize=5)
-
+        print(self.word_ids)
         input_tensor = tf.nn.embedding_lookup(self.word_embeddings, self.word_ids)
 
         # input_tensor [32 42 300][[[0.033284 -0.040754 -0.048377 0.12017 -0.13915]]...]
@@ -139,7 +139,7 @@ class MLTModel(object):
                 s = tf.shape(char_input_tensor)
 
                 # char_input_tensor [32 42 14 100][[[[-0.133647785 -0.0104248524 -0.0767552108 0.157381654 -0.0219091922]]]...]
-                char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
+                # char_input_tensor = tf.Print(char_input_tensor, [tf.shape(char_input_tensor), char_input_tensor], 'char_input_tensor ', summarize=5)
 
                 # Reshaping char_input_tensor and word_lengths - Why?
                 # self.char_embeddings (97, 100), word_lengths (32, 42)
@@ -277,11 +277,16 @@ class MLTModel(object):
             self.attention_weights_unnormalised = tf.zeros_like(self.word_ids, dtype=tf.float32)
         elif self.config["sentence_composition"] == "attention":
             with tf.variable_scope("attention"):
+                # e
                 attention_evidence = tf.layers.dense(lstm_outputs, self.config["attention_evidence_size"], activation=tf.tanh, kernel_initializer=self.initializer)
 
                 # attention_evidence [32 42 100][[[-0.1122666 -0.208284497 0.0635408163 0.072117269 0.114323549]]...]
                 # attention_evidence = tf.Print(attention_evidence, [tf.shape(attention_evidence), attention_evidence], 'attention_evidence ', summarize=5)
 
+                # Added another layer to try?
+                # attention_weights = tf.layers.dense(attention_evidence, 50, activation=tf.tanh, kernel_initializer=self.initializer)
+
+                # e-hat
                 attention_weights = tf.layers.dense(attention_evidence, 1, activation=None, kernel_initializer=self.initializer)
 
                 # attention_weights [32 42 1][[[0.175914466][0.114666343][0.0859841406][0.220286131][0.345916331]]...]
@@ -290,8 +295,9 @@ class MLTModel(object):
                 attention_weights = tf.reshape(attention_weights, shape=tf.shape(self.word_ids))
 
                 # attention_weights [32 42][[0.257553369 0.128167823 0.15162158 0.0321515091 0.0484975688]...]
-                # attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=5)
+                # attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=999)
 
+                # a-hat = sigmoid of attention weights
                 # attention_activation = soft
                 if self.config["attention_activation"] == "sharp":
                     attention_weights = tf.exp(attention_weights)
@@ -302,19 +308,32 @@ class MLTModel(object):
                 else:
                     raise ValueError("Unknown activation for attention: " + str(self.config["attention_activation"]))
 
+                # attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights_1\n', summarize=999)
+
                 # word_objective_weight = 0.0
                 word_objective_loss = tf.square(attention_weights - self.word_labels)
                 word_objective_loss = tf.where(tf.sequence_mask(self.sentence_lengths), word_objective_loss, tf.zeros_like(word_objective_loss))
                 self.loss += self.config["word_objective_weight"] * tf.reduce_sum(self.word_objective_weights * word_objective_loss)
 
                 self.attention_weights_unnormalised = attention_weights
+                
+                # zero-ised weights for shorter sentences
                 attention_weights = tf.where(tf.sequence_mask(self.sentence_lengths), attention_weights, tf.zeros_like(attention_weights))
+                # attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights_2\n', summarize=999)
+
+                # a = attention weights for words in sentence sum to 1
                 attention_weights = attention_weights / tf.reduce_sum(attention_weights, 1, keep_dims=True)
+                # attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights_after_normalised\n', summarize=999)
+                
+                # lstm_outputs = h
+                # attention_weights = a
+                # processed_tensor = c
                 processed_tensor = tf.reduce_sum(lstm_outputs * attention_weights[:,:,numpy.newaxis], 1)
 
                 # processed_tensor [32 200][[0.0998472124 -0.15800871 0.180494159 0.212085128 -0.0436996967]...]
                 # processed_tensor = tf.Print(processed_tensor, [tf.shape(processed_tensor), processed_tensor], 'processed_tensor ', summarize=5)
 
+        # d
         # hidden_layer_size = 50
         if self.config["hidden_layer_size"] > 0:
             processed_tensor = tf.layers.dense(processed_tensor, self.config["hidden_layer_size"], activation=tf.tanh, kernel_initializer=self.initializer)
@@ -322,6 +341,7 @@ class MLTModel(object):
             # processed_tensor [32 50][[0.0976842418 0.178458333 -0.119485192 0.132142678 0.169890434]...]
             # processed_tensor = tf.Print(processed_tensor, [tf.shape(processed_tensor), processed_tensor], 'processed_tensor ', summarize=5)
 
+        # y
         self.sentence_scores = tf.layers.dense(processed_tensor, 1, activation=tf.sigmoid, kernel_initializer=self.initializer, name="output_ff")
 
         # self.sentence_scores (after dense) [32 1][[0.481682301][0.566274941][0.535907149][0.626509309][0.585899055]...]
@@ -333,6 +353,8 @@ class MLTModel(object):
         # self.sentence_scores (after reshape) [32][0.515106499 0.51553309 0.406303078 0.582218766 0.401411533...]
         # self.sentence_scores = tf.Print(self.sentence_scores, [tf.shape(self.sentence_scores), self.sentence_scores], 'self.sentence_scores (after reshape) ', summarize=5)
 
+        # Loss function(s) below
+
         # sentence_objective_weight = 1.0
         self.loss += self.config["sentence_objective_weight"] * tf.reduce_sum(self.sentence_objective_weights * tf.square(self.sentence_scores - self.sentence_labels))
 
@@ -340,9 +362,9 @@ class MLTModel(object):
         # self.loss[][6.61398029]
         tf.summary.scalar('loss_sentence_objective_weight', self.loss)
 
-        # tf.Print(self.sentence_labels, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=5)
-        # tf.Print(self.sentence_labels, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=5)
-        # tf.Print(self.sentence_labels, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=5)
+        # self.loss = tf.Print(self.loss, [tf.shape(self.sentence_lengths), self.sentence_lengths], 'self.sentence_lengths', summarize=999)
+        # self.loss = tf.Print(self.loss, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=999)
+        # self.loss = tf.Print(self.loss, [tf.shape(self.attention_weights_unnormalised), self.attention_weights_unnormalised], 'self.attention_weights_unnormalised', summarize=5)
         # print(self.sentence_labels)
 
         # attention_objective_weight = 0.01
