@@ -188,14 +188,14 @@ def run_experiment(config_path):
         model_selector_type = config["model_selector"].split(":")[1]
         best_selector_value = 0.0
         best_epoch = -1
-        learningrate = config["learningrate"]
+        # learningrate = config["learningrate"]
 
-        # sess = tf.Session()
+        sess = tf.Session()
 
         for epoch in range(config["epochs"]):
             print("EPOCH: " + str(epoch))
 
-            # learningrate = sess.run(clr.cyclic_learning_rate(epoch, learning_rate=1.0, max_lr=1.2, mode='triangular2'))
+            learningrate = sess.run(clr.cyclic_learning_rate(epoch, learning_rate=0.8, max_lr=1.2, mode='triangular2'))
             
             print("current_learningrate: " + str(learningrate))
             
