@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ## Run for 1 hour
-#PBS -l walltime=18:00:00
+#PBS -l walltime=8:00:00
 
 ## Submit to correct queue for DGX access
 #PBS -q fj4
