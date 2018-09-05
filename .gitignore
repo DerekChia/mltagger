@@ -1,6 +1,7 @@
 data/
 results/
 output/
+results/internal
 
 # General
 .DS_Store
