@@ -1,19 +1,19 @@
 #!/bin/sh
 
 ## Run for 1 hour
-#PBS -l walltime=8:00:00
+#PBS -l walltime=18:00:00
 
 ## Submit to correct queue for DGX access
 #PBS -q fj4
 
 ## Using the gpus
-#PBS -l select=1:ncpus=40:ngpus=8
+#PBS -l select=1:ncpus=1:ngpus=1
 
 ## Specify project id or run under Personal quota
 #PBS -P 41000001
 
 ## Job name
-#PBS -N 5_fasttext.conf
+#PBS -N 5_fasttext_stdin.conf
 
 ## Merge standard ouput and error from PBS script
 #PBS -j oe

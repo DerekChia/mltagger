@@ -7,7 +7,7 @@
 #PBS -q fj4
 
 ## Using the gpus
-#PBS -l select=1:ncpus=40:ngpus=8
+#PBS -l select=1:ncpus=1:ngpus=1
 
 ## Specify project id or run under Personal quota
 #PBS -P 41000001

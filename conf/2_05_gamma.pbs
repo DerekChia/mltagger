@@ -7,13 +7,13 @@
 #PBS -q fj4
 
 ## Using the gpus
-#PBS -l select=1:ncpus=40:ngpus=8
+#PBS -l select=1:ncpus=1:ngpus=1
 
 ## Specify project id or run under Personal quota
 #PBS -P 41000001
 
 ## Job name
-#PBS -N 2_05_gamma.conf
+#PBS -N 2_05_gamma
 
 ## Merge standard ouput and error from PBS script
 #PBS -j oe
