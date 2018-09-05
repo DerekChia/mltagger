@@ -386,7 +386,11 @@ class MLTModel(object):
                                 tf.sequence_mask(self.sentence_lengths), 
                                 self.attention_weights_unnormalised, 
                                 tf.zeros_like(self.attention_weights_unnormalised) + 1e6), 
-                            axis=-1) - 0.0)))
+                            axis=-1) - 0.0))
+                +
+                tf.reduce_sum(
+                    
+                ))
         # self.sentence_labels = tf.Print(self.sentence_labels, [tf.shape(self.sentence_labels), self.sentence_labels], 'self.sentence_labels', summarize=5)
         # self.loss = tf.Print(self.loss, [tf.shape(self.loss), self.loss], 'self.loss - attention_objective_weight', summarize=5)
         # self.loss[][5.22998095]

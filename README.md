@@ -198,9 +198,9 @@ Edit the values in conf/CONFIG_FILE.conf as needed:
 
 To-Do
 -------------------------
-- [ ] Try FB's FastText embeddings (Training in progress)
-- [ ] Change gamma in loss function to 0.1 (currently 0.01) (attention_objective_weight)
+- [x] Try FB's FastText embeddings
+- [x] Change gamma in loss function to 0.1/0.5/0.0  (currently 0.01) (attention_objective_weight)
 - [ ] Reproduce on Twitter sentiment dataset
-- [ ] Add more layers (TBD)
+- [x] Add more layers (added new )
 - [ ] Add UI for API interface
 - [x] Add API for inference

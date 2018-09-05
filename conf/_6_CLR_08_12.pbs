@@ -1,0 +1,42 @@
+#!/bin/sh
+
+## Run for 1 hour
+#PBS -l walltime=8:00:00
+
+## Submit to correct queue for DGX access
+#PBS -q fj4
+
+## Using the gpus
+#PBS -l select=1:ncpus=40:ngpus=8
+
+## Specify project id or run under Personal quota
+#PBS -P 41000001
+
+## Job name
+#PBS -N MLT_CLR
+
+## Merge standard ouput and error from PBS script
+#PBS -j oe
+
+## Copy contents of CascadedFCN
+## cp -a $HOME/CascadedFCN "$PBS_O_WORKDIR" # we have checked that it is already copied
+
+
+# Change to directory where job was submitted
+echo "change directory to $PBS_O_WORKDIR"
+cd "$PBS_O_WORKDIR" || exit $?
+
+echo "change directory to MLTagger"
+cd mltagger
+
+# Specify which Docker image to use for container
+## image="nvcr.io/nvidia/tensorflow:18.06-py3"
+## image="nscc/e0267395/tensorflow:1.0"
+image="nscc/e0267395/tensorflow:1.2"
+
+echo "Running nvidia-docker-run.."
+# Pass the commands that you wish to run inside the container to the standard input of nvidia-docker-run
+## nvidia-docker-run $image < stdin > stdout.$PBS_JOBID 2> stderr.$PBS_JOBID
+nvidia-docker-run $image < stdin > job.stdout 2> job.stderr
+nvidia-smi
+echo "Finished running.."

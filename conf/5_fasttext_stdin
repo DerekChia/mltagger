@@ -1,0 +1,1 @@
+cd /home/users/nus/t0915811/mltagger && python src/experiment.py conf/5_fasttext.conf
