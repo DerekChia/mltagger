@@ -27,7 +27,7 @@ echo "change directory to $PBS_O_WORKDIR"
 cd "$PBS_O_WORKDIR" || exit $?
 
 echo "change directory to MLTagger"
-cd mltagger_add_layer/conf
+cd mltagger/conf
 
 # Specify which Docker image to use for container
 ## image="nvcr.io/nvidia/tensorflow:18.06-py3"
