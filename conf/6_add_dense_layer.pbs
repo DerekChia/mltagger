@@ -37,6 +37,6 @@ image="nscc/e0267395/tensorflow:1.2"
 echo "Running nvidia-docker-run.."
 # Pass the commands that you wish to run inside the container to the standard input of nvidia-docker-run
 ## nvidia-docker-run $image < stdin > stdout.$PBS_JOBID 2> stderr.$PBS_JOBID
-nvidia-docker-run $image < 5_fasttext_stdin > job.stdout 2> job.stderr
+nvidia-docker-run $image < 6_add_dense_layer_stdin > job.stdout 2> job.stderr
 nvidia-smi
 echo "Finished running.."
