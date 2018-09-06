@@ -1,0 +1,1 @@
+cd /home/users/nus/t0915811/mltagger_add_dense_layer && python src/experiment.py conf/6_add_dense_layer.conf

@@ -284,10 +284,11 @@ class MLTModel(object):
                 # attention_evidence = tf.Print(attention_evidence, [tf.shape(attention_evidence), attention_evidence], 'attention_evidence ', summarize=5)
 
                 # Added another layer to try?
-                # attention_weights = tf.layers.dense(attention_evidence, 50, activation=tf.tanh, kernel_initializer=self.initializer)
+                attention_weights = tf.layers.dense(attention_evidence, 50, activation=tf.tanh, kernel_initializer=self.initializer)
+                attention_weights = tf.layers.dense(attention_weights, 1, activation=None, kernel_initializer=self.initializer)
 
                 # e-hat
-                attention_weights = tf.layers.dense(attention_evidence, 1, activation=None, kernel_initializer=self.initializer)
+                # attention_weights = tf.layers.dense(attention_evidence, 1, activation=None, kernel_initializer=self.initializer)
 
                 # attention_weights [32 42 1][[[0.175914466][0.114666343][0.0859841406][0.220286131][0.345916331]]...]
                 # attention_weights = tf.Print(attention_weights, [tf.shape(attention_weights), attention_weights], 'attention_weights ', summarize=5)
