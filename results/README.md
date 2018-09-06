@@ -24,3 +24,22 @@ FCE test data set
 | **test_tok_0_f**                 | **0.26764566556134534**| **0.197598897854753** | **0.08751289989680083**   | **0.15397443023902166**   | **0.27795215932460227**   |
 | test_tok_0_f05                   | 0.23233340872175504    | 0.2309851378088621    | 0.1068279163517259        | 0.2806768669571385        | 0.23346728003345638       |
 
+| Parameter                        | 5_fasttext.model       |       |           |         |         |
+| -------------                    | -------------          | -------------         | -------------             | -------------             | -------------             |
+| test_cost_avg                    | 
+| test_cost_sum                    |
+| test_sentence_count              |
+| test_sentence_predicted          |
+| test_sentence_correct            |
+| test_sentence_total              |
+| test_sentence_precision          |
+| test_sentence_recall             |
+| **test_sentence_f1_score**       |
+| test_sentence_f05_score          |
+| test_sentence_correct_binary     |
+| test_sentence_accuracy_binary    |
+| test_tok_0_map                   |
+| test_tok_0_p                     |
+| test_tok_0_r                     |
+| **test_tok_0_f**                 |
+| test_tok_0_f05                   |
